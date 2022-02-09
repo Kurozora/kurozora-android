@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="backgroundColor">#FF353A50</color>
+    <color name="barTintColor">#FF353A50</color>
+    <color name="barTitleTextColor">#FFEEEEEE</color>
+    <color name="blurBackgroundColor">#80333333</color>
+    <color name="borderColor">#FFAFAFAF</color>
+    <color name="textColor">#FFEEEEEE</color>
+    <color name="textFieldBackgroundColor">#FF525C70</color>
+    <color name="textFieldTextColor">#FFEEEEEE</color>
+    <color name="textFieldPlaceholderTextColor">#FF979DA9</color>
+    <color name="tintColor">#FFFF9300</color>
+    <color name="tintedBackgroundColor">#FF50577D</color>
+    <color name="tintedButtonTextColor">#FFEEEEEE</color>
+    <color name="separatorColor">#FFC6C5C5</color>
+    <color name="separatorColorLight">#FF5A5D6D</color>
+    <color name="subTextColor">#FFAFAFAF</color>
+</resources>
