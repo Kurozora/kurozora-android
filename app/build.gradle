@@ -32,6 +32,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'app.kurozora.tracker'
 }
 
 dependencies {
