@@ -12,16 +12,16 @@
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
 
         <!-- Navigation bar color. -->
-        <item name="android:navigationBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
 
         <!-- Window background color. -->
-        <item name="android:windowBackground" tools:targetApi="l">?attr/colorPrimary</item>
+        <item name="android:windowBackground">?attr/colorPrimary</item>
 
         <!-- Customize your theme here. -->
-        <item name="android:colorBackground" tools:targetApi="l">?attr/colorPrimary</item>
+        <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="colorOnBackground">?attr/colorSecondary</item>
 <!--        <item name="colorSurface">?attr/colorPrimary</item>-->
         <item name="colorOnSurface">?attr/colorSecondary</item>
@@ -42,20 +42,20 @@
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
         <!-- Navigation bar color. -->
-        <item name="android:navigationBarColor" tools:targetApi="l">@color/black</item>
+        <item name="android:navigationBarColor">@color/black</item>
 
         <!-- Window background color. -->
-        <item name="android:windowBackground" tools:targetApi="l">@color/black</item>
+        <item name="android:windowBackground">@color/black</item>
 
         <!-- Customize your theme here. -->
         <item name="android:colorBackground">@color/black</item>
-        <!--        <item name="colorOnBackground"></item>-->
-        <!--        <item name="colorSurface"></item>-->
-        <!--        <item name="colorOnSurface"></item>-->
-        <!--        <item name="colorError">@color/red_500</item>-->
-        <!--        <item name="colorOnError"></item>-->
+<!--        <item name="colorOnBackground"></item>-->
+<!--        <item name="colorSurface"></item>-->
+<!--        <item name="colorOnSurface"></item>-->
+<!--        <item name="colorError">@color/red_500</item>-->
+<!--        <item name="colorOnError"></item>-->
     </style>
 </resources>

@@ -12,21 +12,21 @@
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
         <!-- Navigation bar color. -->
-        <item name="android:navigationBarColor" tools:targetApi="l">@color/charcoal_500</item>
+        <item name="android:navigationBarColor">@color/charcoal_500</item>
 
         <!-- Window background color. -->
-        <item name="android:windowBackground" tools:targetApi="l">@color/charcoal_500</item>
+        <item name="android:windowBackground">@color/charcoal_500</item>
 
         <!-- Customize your theme here. -->
         <item name="android:colorBackground">@color/charcoal_500</item>
-        <!--        <item name="colorOnBackground"></item>-->
-        <!--        <item name="colorSurface"></item>-->
-        <!--        <item name="colorOnSurface"></item>-->
-        <!--        <item name="colorError">@color/red_500</item>-->
-        <!--        <item name="colorOnError"></item>-->
+<!--        <item name="colorOnBackground"></item>-->
+<!--        <item name="colorSurface"></item>-->
+<!--        <item name="colorOnSurface"></item>-->
+<!--        <item name="colorError">@color/red_500</item>-->
+<!--        <item name="colorOnError"></item>-->
     </style>
 
     <!-- Day application theme. -->
@@ -42,20 +42,20 @@
         <item name="colorOnSecondary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
         <!-- Navigation bar color. -->
-        <item name="android:navigationBarColor" tools:targetApi="l">@color/white</item>
+        <item name="android:navigationBarColor">@color/white</item>
 
         <!-- Window background color. -->
-        <item name="android:windowBackground" tools:targetApi="l">@color/white</item>
+        <item name="android:windowBackground">@color/white</item>
 
         <!-- Customize your theme here. -->
         <item name="android:colorBackground">@color/white</item>
-        <!--        <item name="colorOnBackground"></item>-->
-        <!--        <item name="colorSurface"></item>-->
-        <!--        <item name="colorOnSurface"></item>-->
-        <!--        <item name="colorError">@color/red_500</item>-->
-        <!--        <item name="colorOnError"></item>-->
+<!--        <item name="colorOnBackground"></item>-->
+<!--        <item name="colorSurface"></item>-->
+<!--        <item name="colorOnSurface"></item>-->
+<!--        <item name="colorError">@color/red_500</item>-->
+<!--        <item name="colorOnError"></item>-->
     </style>
 </resources>
