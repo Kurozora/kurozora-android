@@ -1,4 +1,6 @@
-<p align="center"><img src=".github/Assets/Kurozora.png" width="256px"></p>
+<p></p>
+
+<p align="center"><img src=".github/Assets/Kurozora.png" width="200px"></p>
 
 <p align="center">
     <sup><em>Your one-stop shop for everything anime on Android!</em></sup>
