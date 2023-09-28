@@ -6,4 +6,9 @@
     <string name="title_notifications">Notifications</string>
     <string name="title_search">Search</string>
     <string name="hello_blank_fragment">Hello, Kurozora!</string>
+    <string name="navigation_explore">Explore</string>
+    <string name="navigation_library">Library</string>
+    <string name="navigation_feed">Feed</string>
+    <string name="navigation_notifications">Notifications</string>
+    <string name="navigation_search">Search</string>
 </resources>
