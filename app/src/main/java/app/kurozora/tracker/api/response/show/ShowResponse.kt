@@ -1,15 +1,16 @@
-package app.kurozora.tracker.api.response
+package app.kurozora.tracker.api.response.show
 
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-data class GameResponse(
+data class ShowResponse(
     @SerializedName("id")
-    val id :Int,
+    val id: String,
 
     @SerializedName("type")
-    val type : String,
+    val type: String,
 
     @SerializedName("href")
-    val href : String
-):Serializable
+    val href: String
+): Serializable
+

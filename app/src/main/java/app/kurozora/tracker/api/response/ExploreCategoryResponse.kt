@@ -4,24 +4,27 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class ExploreCategoryResponse(
-
     @SerializedName("id")
-    var id : String,
+    var id: String,
 
     @SerializedName("uuid")
-    var uuid : String,
+    var uuid: String,
 
     @SerializedName("type")
-    var type : String,
+    var type: String,
 
     @SerializedName("href")
-    var href : String,
+    var href: String,
 
+    /**
+     * The attributes belonging to the explore category.
+     */
     @SerializedName("attributes")
-    var attributes : AttributesResponse,
+    var attributes: AttributesResponse,
 
+    /**
+     * The relationships belonging to the explore category.
+     */
     @SerializedName("relationships")
-    val relationships : RelationshipsResponse,
-
-
-) : Serializable
+    val relationships: RelationshipsResponse,
+): Serializable

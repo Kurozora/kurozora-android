@@ -7,11 +7,8 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 
 interface ShowInterface {
-
-
     @GET("$SHOW_URL/{show_id}")
-    fun getShow(@Path("show_id") showId: Int): Call<BackendResponse<Show>>
-
+    fun getShow(@Path("show_id") showId: String): Call<BackendResponse<Show>>
 
     companion object {
         const val SHOW_URL = "anime"

@@ -4,24 +4,39 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class AttributesResponse(
-    @SerializedName("title")
-    val title : String,
-
-    @SerializedName("description")
-    val description : String,
-
+    /**
+     * The slug of the resource.
+      */
     @SerializedName("slug")
-    val slug : String,
+    val slug: String,
 
-    @SerializedName("secondarySlug")
-    val secondarySlug : String,
+    /**
+     * The title of the explore category.
+     */
+    @SerializedName("title")
+    val title: String,
 
-    @SerializedName("type")
-    val type : String,
+    /**
+     * The description of the explore category.
+     */
+    @SerializedName("description")
+    val description: String?,
 
-    @SerializedName("size")
-    val size : String,
-
+    /**
+     * The position of the explore category.
+     */
     @SerializedName("position")
-    val position: Int
-) : Serializable
+    val position: Int,
+
+    /**
+     * The type of the explore category.
+     */
+    @SerializedName("type")
+    val type: String,
+
+    /**
+     * The size of the explore category.
+     */
+    @SerializedName("size")
+    val size: String,
+): Serializable

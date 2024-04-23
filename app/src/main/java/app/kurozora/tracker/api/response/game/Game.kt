@@ -1,13 +1,30 @@
 package app.kurozora.tracker.api.response.game
 
-import app.kurozora.tracker.api.response.show.Poster
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
+/**
+ * A root object that stores information about a game resource.
+ */
 data class Game(
-    @SerializedName("title")
-    val title : String,
+    @SerializedName("id")
+    val id :String,
 
-    @SerializedName("poster")
-    val poster: Poster
+    @SerializedName("uuid")
+    val uuid: String,
+
+    @SerializedName("type")
+    val type : String,
+
+    @SerializedName("href")
+    val href : String,
+
+    @SerializedName("slug")
+    var slug : String?,
+
+    /**
+     * The attributes belonging to the game.
+     */
+    @SerializedName("attributes")
+    var attributes : GameAttributes
 ): Serializable
