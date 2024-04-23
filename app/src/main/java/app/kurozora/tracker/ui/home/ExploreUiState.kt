@@ -5,32 +5,33 @@ import app.kurozora.tracker.api.response.show.Show
 import app.kurozora.tracker.ui.components.BaseUiState
 
 data class ExploreUiState(
-    val featuredState : ShowLoadingTaskState = ShowLoadingTaskState.Loading,
-    val gamesState : GamesLoadingTaskState = GamesLoadingTaskState.Loading,
-    val summerState : ShowLoadingTaskState = ShowLoadingTaskState.Loading,
-) : BaseUiState()
+    val featuredState: ShowLoadingTaskState = ShowLoadingTaskState.Loading,
+    val gamesState: GamesLoadingTaskState = GamesLoadingTaskState.Loading,
+    val seasonState: ShowLoadingTaskState = ShowLoadingTaskState.Loading,
+): BaseUiState()
 
-sealed class ShowLoadingTaskState : BaseUiState() {
-    object Loading : ShowLoadingTaskState()
+sealed class ShowLoadingTaskState: BaseUiState() {
+    object Loading: ShowLoadingTaskState()
     data class Loaded(
         val result: List<Show>
-    ) :  ShowLoadingTaskState()
+    ): ShowLoadingTaskState()
 
     data class Error(
         val error: String
-    ) : ShowLoadingTaskState()
+    ): ShowLoadingTaskState()
 
-    object Empty : ShowLoadingTaskState()
+    object Empty: ShowLoadingTaskState()
 }
-sealed class GamesLoadingTaskState : BaseUiState() {
-    object Loading : GamesLoadingTaskState()
+
+sealed class GamesLoadingTaskState: BaseUiState() {
+    object Loading: GamesLoadingTaskState()
     data class Loaded(
         val result: List<Game>
-    ) : GamesLoadingTaskState()
+    ): GamesLoadingTaskState()
 
     data class Error(
         val error: String
-    ) : GamesLoadingTaskState()
+    ): GamesLoadingTaskState()
 
-    object Empty : GamesLoadingTaskState()
+    object Empty: GamesLoadingTaskState()
 }
