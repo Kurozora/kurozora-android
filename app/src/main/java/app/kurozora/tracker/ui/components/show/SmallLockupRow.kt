@@ -3,19 +3,15 @@ package app.kurozora.tracker.ui.components.show
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.kurozora.tracker.ui.home.ShowLoadingTaskState
 
 @Composable
-fun FeaturedShowRow(uiState: ShowLoadingTaskState) {
+fun SmallLockupRow(uiState: ShowLoadingTaskState) {
     when (uiState) {
         is ShowLoadingTaskState.Loaded -> {
             Row(
@@ -25,23 +21,15 @@ fun FeaturedShowRow(uiState: ShowLoadingTaskState) {
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 for (show in uiState.result) {
-                    FeaturedShowItem(
+                    SmallLockupView(
                         modifier = Modifier.fillMaxWidth(0.8f),
-                        show = show
+                        imageURL = show.attributes.poster?.url ?: "",
+                        title = show.attributes.title,
+                        subtitle = show.attributes.tagline ?: ""
                     )
                 }
             }
         }
-        is ShowLoadingTaskState.Loading -> {
-            Row(
-                Modifier.fillMaxWidth().fillMaxHeight(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-        else -> {
-            Text(text = "loading")
-        }
+        else -> {}
     }
 }

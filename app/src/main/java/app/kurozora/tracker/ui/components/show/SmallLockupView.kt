@@ -1,10 +1,8 @@
-package app.kurozora.tracker.ui.components.game
+package app.kurozora.tracker.ui.components.show
 
 import ResponsiveText
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
@@ -29,52 +26,30 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.kurozora.tracker.api.response.game.Game
-import app.kurozora.tracker.ui.home.GamesLoadingTaskState
 import app.kurozora.tracker.ui.theme.Global
 import coil.compose.SubcomposeAsyncImage
 
 @Composable
-fun GamesRow(uiState: GamesLoadingTaskState) {
-    when (uiState) {
-        is GamesLoadingTaskState.Loaded -> {
-            Row(
-                modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .fillMaxWidth(1f),
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                for (game in uiState.result) {
-                    GameItem(
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                        game = game
-                    )
-                }
-            }
-        }
-        else -> {
-
-        }
-    }
-}
-
-@Composable
-fun GameItem(modifier: Modifier, game: Game) {
-    Box(
+fun SmallLockupView(
+    modifier: Modifier,
+    imageURL: String,
+    title: String,
+    subtitle: String,
+) {
+    Column(
         modifier = modifier
             .height(300.dp)
             .width(350.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .padding(bottom = 20.dp),
+        horizontalAlignment = Alignment.Start
     ) {
-        val imageUrl = game.attributes.poster?.url
-
         Row(
             modifier = Modifier.padding(bottom = 20.dp)
         ) {
             SubcomposeAsyncImage(
-                modifier = Modifier.aspectRatio(ratio = 1.0F)
+                modifier = Modifier.aspectRatio(ratio = 9F / 16F)
                     .clip(RoundedCornerShape(18.dp)),
-                model = imageUrl,
+                model = imageURL,
                 contentDescription = "",
                 contentScale = ContentScale.Crop
             )
@@ -84,8 +59,8 @@ fun GameItem(modifier: Modifier, game: Game) {
                 verticalArrangement = Arrangement.Bottom
             ) {
                 TextRow(
-                    title = game.attributes.title,
-                    subtitle = game.attributes.tagline ?: ""
+                    title = title,
+                    subtitle = subtitle
                 )
             }
         }
