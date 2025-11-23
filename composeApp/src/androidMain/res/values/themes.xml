@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.Kurozora.Launcher" parent="Theme.SplashScreen">
+        <!-- Android 12 (API 31) SplashScreen API özellikleri -->
+        <item name="android:windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenAnimationDuration">300</item>
+
+        <!-- Uygulamanın asıl teması -->
+        <item name="postSplashScreenTheme">@style/Theme.Kurozora</item>
+    </style>
+
+    <!-- Ana uygulama teması -->
+    <style name="Theme.Kurozora" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>
