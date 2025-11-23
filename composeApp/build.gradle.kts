@@ -1,9 +1,5 @@
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.compose.resources.ResourcesExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.gradle.api.tasks.Copy
-import org.gradle.api.file.RelativePath
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -22,7 +18,7 @@ kotlin {
     }
 
     jvm()
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -52,7 +48,6 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.composeViewModel)
-
 //            implementation(libs.bundles.kamel)
             //implementation("media.kamel:kamel-image:1.0.3")
             implementation("media.kamel:kamel-image-default:1.0.8")
@@ -65,8 +60,7 @@ kotlin {
 
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-
-        //                implementation(files("../libs/kurozorakit-android-1.0-SNAPSHOT.jar"))
+            //                implementation(files("../libs/kurozorakit-android-1.0-SNAPSHOT.jar"))
             implementation(files("../libs/kurozorakit-android-1.2.6.jar"))
 
             implementation(libs.mediamp.all)
@@ -83,11 +77,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.seloreis.kurozora"
+    namespace = "app.kurozora"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.seloreis.kurozora"
+        applicationId = "app.kurozora.android"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -103,7 +97,7 @@ android {
             storeFile = file("keystore.jks")
             storePassword = "password"
             keyAlias = "kurozora"
-            keyPassword = "password"        
+            keyPassword = "password"
         }
     }
 
@@ -129,12 +123,12 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.seloreis.kurozora.MainKt"
+        mainClass = "app.kurozora.MainKt"
 
         nativeDistributions {
             includeAllModules = true
             targetFormats(TargetFormat.Exe, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.seloreis.kurozora"
+            packageName = "app.kurozora.android"
             packageVersion = "1.0.0"
         }
 
@@ -149,8 +143,6 @@ compose.resources {
     //generateResClass = ResourcesExtension.ResourceClassGeneration.Always
     //srcDirs("build/flattenedResources")
 }
-
-
 //// 🔧 Tüm alt klasörleri flatten eder ve tek dizine kopyalar
 //        tasks.register<Copy>("flattenDrawables") {
 //            val inputDir = file("src/commonMain/resources/drawable")
