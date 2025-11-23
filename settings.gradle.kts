@@ -1,4 +1,4 @@
-rootProject.name = "KurozoraApp"
+rootProject.name = "Kurozora"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
