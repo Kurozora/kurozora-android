@@ -3,14 +3,20 @@ package app.kurozora.ui.screens.profile.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.kurozora.core.settings.AccountScopedSettings
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
+import kurozora.composeapp.generated.resources.Res
 
 data class SettingsCategory(
     val key: String,
@@ -106,6 +112,7 @@ sealed class SettingItem(
         override val title: String,
         override val subtitle: String? = null,
         override val content: @Composable () -> Unit,
+        val isFullDialog: Boolean = false
     ) : SettingItem(key, title, subtitle, content)
 }
 
@@ -127,6 +134,18 @@ fun generateSettingsCategories(scopedSettings: AccountScopedSettings): List<Sett
                     title = "Language",
                     options = listOf("en", "tr", "jp"),
                     selected = scopedSettings.language
+                ),
+                SettingItem.CustomSetting(
+                    key = "hello_fullscreen",
+                    title = "Open Fullscreen Text",
+                    isFullDialog = true,
+                    content = {
+                        Text("Hello Fullscreen!", style = MaterialTheme.typography.headlineMedium)
+                        val libraries by produceLibraries {
+                            Res.readBytes("files/aboutlibraries.json").decodeToString()
+                        }
+                        LibrariesContainer(libraries, Modifier.fillMaxSize())
+                    }
                 )
             )
         ),

@@ -196,11 +196,85 @@ fun SettingsCategoryDetail(category: SettingsCategory, scopedSettings: AccountSc
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(category.items) { item ->
-            when (item) {
-                is SettingItem.SwitchSetting -> SwitchSettingItem(item, scopedSettings)
-                is SettingItem.SingleSelectSetting -> SingleSelectSettingItem(item, scopedSettings)
-                is SettingItem.MultiSelectSetting -> MultiSelectSettingItem(item, scopedSettings)
-                is SettingItem.CustomSetting -> item.content.invoke()
+            SettingsItemRow(item, scopedSettings)
+//            when (item) {
+////                is SettingItem.SwitchSetting -> SwitchSettingItem(item, scopedSettings)
+////                is SettingItem.SingleSelectSetting -> SingleSelectSettingItem(item, scopedSettings)
+////                is SettingItem.MultiSelectSetting -> MultiSelectSettingItem(item, scopedSettings)
+////                is SettingItem.CustomSetting -> item.content.invoke()
+//            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsItemRow(
+    item: SettingItem,
+    scopedSettings: AccountScopedSettings,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable {
+                when (item) {
+                    is SettingItem.CustomSetting -> {
+                        if (item.isFullDialog) {
+                            showDialog = true     // sadece custom + fullscreen
+                        }
+                    }
+                    else -> {
+                        // Other setting types behave normally (Switch, SingleSelect, etc.)
+                    }
+                }
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        // Inline UI only when NOT fullscreen
+        when (item) {
+            is SettingItem.CustomSetting -> {
+                if (!item.isFullDialog) {
+                    item.content.invoke()
+                } else {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(item.title)
+                        item.subtitle?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+            is SettingItem.SwitchSetting -> SwitchSettingItem(item, scopedSettings)
+            is SettingItem.SingleSelectSetting -> SingleSelectSettingItem(item, scopedSettings)
+            is SettingItem.MultiSelectSetting -> MultiSelectSettingItem(item, scopedSettings)
+        }
+    }
+
+    // FULL SCREEN DIALOG — only for CustomSetting + isFullDialog = true
+    if (item is SettingItem.CustomSetting && item.isFullDialog && showDialog) {
+        Dialog(
+            onDismissRequest = { showDialog = false }, properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Column(Modifier.fillMaxSize()) {
+                    TopAppBar(
+                        title = { Text(item.title) },
+                        navigationIcon = {
+                            IconButton(onClick = { showDialog = false }) {
+                                Icon(Icons.Default.Close, contentDescription = "Close")
+                            }
+                        }
+                    )
+                    item.content.invoke()
+                }
             }
         }
     }
