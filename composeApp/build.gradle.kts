@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.aboutLibraries)
 }
 
 kotlin {
@@ -29,8 +30,6 @@ kotlin {
 
             implementation(libs.ktor.client.okhttp)
             implementation("com.google.android.material:material:1.9.0")
-            //implementation("androidx.core:core-splashscreen:1.0.1")
-            //implementation("media.kamel:kamel-image-android:1.0.8")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -48,8 +47,6 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.composeViewModel)
-//            implementation(libs.bundles.kamel)
-            //implementation("media.kamel:kamel-image:1.0.3")
             implementation("media.kamel:kamel-image-default:1.0.8")
             implementation(libs.bundles.coil)
             implementation(libs.bundles.ktor)
@@ -60,10 +57,13 @@ kotlin {
 
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            //                implementation(files("../libs/kurozorakit-android-1.0-SNAPSHOT.jar"))
+
             implementation(files("../libs/kurozorakit-android-1.2.6.jar"))
 
             implementation(libs.mediamp.all)
+
+            implementation(libs.aboutlibraries.core)
+            implementation(libs.aboutlibraries.compose.m3)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -143,25 +143,11 @@ compose.resources {
     //generateResClass = ResourcesExtension.ResourceClassGeneration.Always
     //srcDirs("build/flattenedResources")
 }
-//// 🔧 Tüm alt klasörleri flatten eder ve tek dizine kopyalar
-//        tasks.register<Copy>("flattenDrawables") {
-//            val inputDir = file("src/commonMain/resources/drawable")
-//            val outputDir = layout.buildDirectory.dir("flattenedResources/drawable")
-//
-//            from(inputDir) {
-//                include("**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp", "**/*.svg")
-//                exclude("**/*.ico") // .ico desteklenmiyor
-//
-//                // Alt klasör isimlerini dosya adına ekle (örnek: icons/home.svg -> icons_home.svg)
-//                eachFile { details ->
-//                    val flattenedName = details.relativePath.pathString.replace("/", "_")
-//                    details.relativePath = RelativePath(true, flattenedName)
-//                }
-//            }
-//
-//            into(outputDir)
-//        }
-//
-//tasks.named("composeResources") {
-//    dependsOn("flattenDrawables")
-//}
+
+aboutLibraries {
+    export {
+        // Define the output path for manual generation
+        // Adjust the path based on your project structure (e.g., composeResources, Android res/raw)
+        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+    }
+}
