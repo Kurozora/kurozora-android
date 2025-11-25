@@ -200,6 +200,7 @@ fun SettingsCategoryDetail(category: SettingsCategory, scopedSettings: AccountSc
                 is SettingItem.SwitchSetting -> SwitchSettingItem(item, scopedSettings)
                 is SettingItem.SingleSelectSetting -> SingleSelectSettingItem(item, scopedSettings)
                 is SettingItem.MultiSelectSetting -> MultiSelectSettingItem(item, scopedSettings)
+                is SettingItem.CustomSetting -> item.content.invoke()
             }
         }
     }

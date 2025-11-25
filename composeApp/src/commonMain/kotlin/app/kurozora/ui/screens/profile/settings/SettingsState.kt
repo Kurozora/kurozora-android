@@ -1,6 +1,15 @@
 package app.kurozora.ui.screens.profile.settings
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import app.kurozora.core.settings.AccountScopedSettings
 
 data class SettingsCategory(
@@ -66,7 +75,8 @@ data class SettingsCategory(
 sealed class SettingItem(
     open val key: String,
     open val title: String,
-    open val subtitle: String? = null, // item için alt başlık
+    open val subtitle: String? = null,
+    open val content: @Composable (() -> Unit)? = null,
 ) {
     data class SwitchSetting(
         override val key: String,
@@ -90,6 +100,13 @@ sealed class SettingItem(
         val options: List<String>,
         val selected: List<String>,
     ) : SettingItem(key, title, subtitle)
+
+    data class CustomSetting(
+        override val key: String,
+        override val title: String,
+        override val subtitle: String? = null,
+        override val content: @Composable () -> Unit,
+    ) : SettingItem(key, title, subtitle, content)
 }
 
 fun generateSettingsCategories(scopedSettings: AccountScopedSettings): List<SettingsCategory> {
