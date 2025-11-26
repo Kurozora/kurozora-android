@@ -79,11 +79,15 @@ fun RatingsAndReviewsCard(mediaStat: MediaStat) {
         // Rating bars
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             val total = mediaStat.ratingCountList.sum().toFloat()
-            val ratios = mediaStat.ratingCountList.map { it / total }.reversed()
-
+            val ratios = if (total > 0f) {
+                mediaStat.ratingCountList.map { it / total }.reversed()
+            } else {
+                List(5) { 0f }
+            }
             for (i in 5 downTo 1) {
                 val ratio = ratios[5 - i]
-
+                val safeRatio = ratio.takeIf { it.isFinite() && it >= 0f } ?: 0f
+                
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
