@@ -107,7 +107,7 @@ fun RatingsAndReviewsCard(mediaStat: MediaStat) {
                     }
 
                     LinearProgressIndicator(
-                        progress = { ratio },
+                        progress = { safeRatio },
                         modifier = Modifier
                             .height(6.dp)
                             .weight(1f),
