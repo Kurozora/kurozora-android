@@ -35,6 +35,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LiteratureDetailScreen(
     literature: Literature,
     windowWidth: WindowWidthSizeClass,
+    isLoggedIn: Boolean,
     onNavigateBack: () -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToPeopleList: (String) -> Unit,

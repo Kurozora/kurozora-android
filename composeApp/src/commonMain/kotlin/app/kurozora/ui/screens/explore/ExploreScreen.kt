@@ -59,6 +59,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
+    isLoggedIn: Boolean,
     viewModel: ExploreViewModel = koinViewModel(),
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToCategoryDetails: (ExploreCategory) -> Unit,

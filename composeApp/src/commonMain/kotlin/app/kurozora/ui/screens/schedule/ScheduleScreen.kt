@@ -49,6 +49,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ScheduleScreen(
     windowWidth: WindowWidthSizeClass,
+    isLoggedIn: Boolean,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ScheduleViewModel = koinViewModel(),

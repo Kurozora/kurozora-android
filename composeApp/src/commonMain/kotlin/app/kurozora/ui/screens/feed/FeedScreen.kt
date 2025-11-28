@@ -22,6 +22,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun FeedScreen(
+    isLoggedIn: Boolean,
     viewModel: FeedViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()

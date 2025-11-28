@@ -128,6 +128,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SearchScreen(
     windowWidth: WindowWidthSizeClass,
+    isLoggedIn: Boolean,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToAirSeason: () -> Unit,
     viewModel: SearchViewModel = koinViewModel(),

@@ -1,5 +1,6 @@
 package app.kurozora.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,10 +21,21 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.decodeToImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.kurozora.ui.screens.explore.ItemType
+import kurozora.composeapp.generated.resources.Res
+import kurozorakit.data.models.game.Game
+import kurozorakit.data.models.literature.Literature
+import kurozorakit.data.models.show.Show
 
 sealed class ItemListViewMode {
     data class Grid(val columns: Int = 2) : ItemListViewMode()
@@ -35,6 +47,7 @@ sealed class ItemListViewMode {
 @Composable
 fun <T> ItemList(
     items: List<T>,
+    itemType: ItemType? = null,
     viewMode: ItemListViewMode,
     modifier: Modifier = Modifier,
     itemSpacing: Dp = 12.dp,
@@ -49,10 +62,43 @@ fun <T> ItemList(
         ) { Text("No items found.") }
     },
 ) {
+    var emptyAnimeLibrary: ByteArray? by remember { mutableStateOf(null) }
+    var emptyMangaLibrary: ByteArray? by remember { mutableStateOf(null) }
+    var emptyGameLibrary: ByteArray? by remember { mutableStateOf(null) }
+    var emptyImage: ImageBitmap? = null
+
+    LaunchedEffect(Unit) {
+        emptyAnimeLibrary = Res.readBytes("files/static/placeholders/empty_anime_library.webp")
+        emptyMangaLibrary = Res.readBytes("files/static/placeholders/empty_manga_library.webp")
+        emptyGameLibrary = Res.readBytes("files/static/placeholders/empty_game_library.webp")
+        emptyImage = when (itemType) {
+            ItemType.Show -> emptyAnimeLibrary?.decodeToImageBitmap()
+            ItemType.Literature -> emptyMangaLibrary?.decodeToImageBitmap()
+            ItemType.Game -> emptyGameLibrary?.decodeToImageBitmap()
+            else -> null
+        }
+    }
+
+
     if (items.isEmpty()) {
-        emptyContent()
+        if (emptyImage != null) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    bitmap = emptyImage!!,
+                    contentDescription = "empty",
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                )
+            }
+        } else {
+            emptyContent()
+        }
         return
     }
+
 
     when (viewMode) {
         ItemListViewMode.Horizontal -> {

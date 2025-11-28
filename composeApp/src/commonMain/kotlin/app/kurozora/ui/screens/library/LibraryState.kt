@@ -26,7 +26,7 @@ data class LibraryState(
     // ----------------------------
     val items: List<Any> = emptyList(),
     val mediaCard: MediaCardViewMode = MediaCardViewMode.Compact,
-    val columnCount: Int = 4,
+    val columnCount: Int = 3,
     val sortType: KKLibrary.SortType = KKLibrary.SortType.NONE,
     val sortOption: KKLibrary.Option = KKLibrary.Option.NONE,
     val activeType: KKSearchType? = null,

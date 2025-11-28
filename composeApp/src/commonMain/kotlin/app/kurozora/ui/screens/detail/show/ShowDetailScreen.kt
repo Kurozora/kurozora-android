@@ -80,6 +80,7 @@ fun ItemPlaceholder(
 fun ShowDetailScreen(
     show: Show,
     windowWidth: WindowWidthSizeClass,
+    isLoggedIn: Boolean,
     onNavigateBack: () -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToSeasonList: (String) -> Unit,

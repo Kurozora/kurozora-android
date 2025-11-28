@@ -114,11 +114,12 @@ fun AppNavHost(
         modifier = modifier
     ) {
         val accountManager = GlobalContext.get().get<AccountManager>()
-        accountManager.getScopedSettings()
+        val isLoggedIn = accountManager.activeAccount.value != null
         // Explore Screen
         composable(Screen.Explore.route) {
             //PlaceholderScreen(screenName = "Explore")
             ExploreScreen(
+                isLoggedIn = isLoggedIn,
                 onNavigateToItemDetail = { item ->
                     navController.navigateToItemDetail(item)
                 },
@@ -134,6 +135,7 @@ fun AppNavHost(
         composable(Screen.Library.route) {
             LibraryScreen(
                 windowWidth = windowSize.windowWidthSizeClass,
+                isLoggedIn = isLoggedIn,
                 onNavigateToItemDetail = { item ->
                     navController.navigateToItemDetail(item)
                 },
@@ -169,6 +171,7 @@ fun AppNavHost(
             //PlaceholderScreen(screenName = "Search")
             SearchScreen(
                 windowWidth = windowSize.windowWidthSizeClass,
+                isLoggedIn = isLoggedIn,
                 onNavigateToItemDetail = { item ->
                     navController.navigateToItemDetail(item)
                 },
@@ -187,13 +190,16 @@ fun AppNavHost(
             )
         }
         composable(Screen.Feed.route) {
-            FeedScreen()
+            FeedScreen(
+                isLoggedIn = isLoggedIn,
+            )
 //            PlaceholderScreen(screenName = "Feed")
         }
 
         composable(Screen.Schedule.route) {
             ScheduleScreen(
                 windowWidth = windowSize.windowWidthSizeClass,
+                isLoggedIn = isLoggedIn,
                 onNavigateToItemDetail = { item ->
                     navController.navigateToItemDetail(item)
                 },
@@ -302,6 +308,7 @@ fun AppNavHost(
                 ShowDetailScreen(
                     show = showItem,
                     windowWidth = windowSize.windowWidthSizeClass,
+                    isLoggedIn = isLoggedIn,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToItemDetail = { item ->
                         navController.navigateToItemDetail(item)
@@ -351,6 +358,7 @@ fun AppNavHost(
                 LiteratureDetailScreen(
                     literature = litItem,
                     windowWidth = windowSize.windowWidthSizeClass,
+                    isLoggedIn = isLoggedIn,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToItemDetail = { item ->
                         navController.navigateToItemDetail(item)
@@ -400,6 +408,7 @@ fun AppNavHost(
                 GameDetailScreen(
                     game = gameItem,
                     windowWidth = windowSize.windowWidthSizeClass,
+                    isLoggedIn = isLoggedIn,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToItemDetail = { item ->
                         navController.navigateToItemDetail(item)

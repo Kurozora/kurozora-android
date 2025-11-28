@@ -1,12 +1,16 @@
 package app.kurozora.ui.screens.library
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -49,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.decodeToImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowWidthSizeClass
 import app.kurozora.ui.components.ItemList
@@ -61,17 +66,20 @@ import app.kurozora.ui.screens.detail.ItemPlaceholder
 import app.kurozora.ui.screens.explore.ItemType
 import app.kurozora.ui.screens.search.FilterBottomSheet
 import kotlinx.coroutines.delay
+import kurozora.composeapp.generated.resources.Res
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.enums.KKSearchType
 import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.show.Show
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
 @Composable
 fun LibraryScreen(
     windowWidth: WindowWidthSizeClass,
+    isLoggedIn: Boolean,
     onNavigateToItemDetail: (Any) -> Unit,
     viewModel: LibraryViewModel = koinViewModel(),
     onNavigateToFavoriteScreen: () -> Unit,
@@ -86,6 +94,16 @@ fun LibraryScreen(
         if (text != state.query) {
             viewModel.search(text)
         }
+    }
+
+    var emptyAnimeLibrary: ByteArray? by remember { mutableStateOf(null) }
+    var emptyMangaLibrary: ByteArray? by remember { mutableStateOf(null) }
+    var emptyGameLibrary: ByteArray? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(Unit) {
+        emptyAnimeLibrary = Res.readBytes("files/static/placeholders/empty_anime_library.webp")
+        emptyMangaLibrary = Res.readBytes("files/static/placeholders/empty_manga_library.webp")
+        emptyGameLibrary = Res.readBytes("files/static/placeholders/empty_game_library.webp")
     }
 
     Scaffold(
@@ -240,6 +258,34 @@ fun LibraryScreen(
                     }
                 }
 
+                !isLoggedIn -> {
+                    val imageBitmap = when (state.selectedTab) {
+                        LibraryTab.Animes -> emptyAnimeLibrary
+                        LibraryTab.Mangas -> emptyMangaLibrary
+                        LibraryTab.Games  -> emptyGameLibrary
+                    }?.decodeToImageBitmap()
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        imageBitmap?.let { bmp ->
+                            Image(
+                                bitmap = bmp,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.60f)
+
+                            )
+                        }
+                        Text(
+                            "You need to be logged in to view your library.",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 20.dp)
+                        )
+                    }
+                }
+
                 state.errorMessage != null -> {
                     Text(
                         "Error: ${state.errorMessage}",
@@ -272,7 +318,7 @@ fun LibraryScreen(
                             }
                         }
                         // Compact view mode seçiliyse → kullanıcı ayarı override eder
-                        if (state.mediaCard == MediaCardViewMode.Compact) {
+                        if (state.mediaCard == MediaCardViewMode.Compact && state.selectedTab != LibraryTab.Games) {
                             columnCount = state.columnCount
                         }
                         // 🔍 Search aktifse ID listesine göre detaylı liste göster
@@ -283,6 +329,7 @@ fun LibraryScreen(
                                         item {
                                             ItemList(
                                                 items = state.showIds,
+                                                itemType = ItemType.Show,
                                                 viewMode = ItemListViewMode.Grid(columnCount),
                                                 itemContent = { id ->
                                                     val show = state.shows[id]
@@ -314,6 +361,7 @@ fun LibraryScreen(
                                         item {
                                             ItemList(
                                                 items = state.literatureIds,
+                                                itemType = ItemType.Literature,
                                                 viewMode = ItemListViewMode.Grid(columnCount),
                                                 itemContent = { id ->
                                                     val lit = state.literatures[id]
@@ -345,6 +393,7 @@ fun LibraryScreen(
                                         item {
                                             ItemList(
                                                 items = state.gameIds,
+                                                itemType = ItemType.Game,
                                                 viewMode = ItemListViewMode.Grid(columnCount),
                                                 itemContent = { id ->
                                                     val game = state.games[id]
