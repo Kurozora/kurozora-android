@@ -24,6 +24,7 @@ import app.kurozora.ui.components.cards.GameCard
 import app.kurozora.ui.components.cards.LiteratureCard
 import app.kurozora.ui.screens.explore.ItemType
 import kurozorakit.data.models.literature.Literature
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.studio.Studio
 import org.koin.compose.viewmodel.koinViewModel
@@ -61,7 +62,7 @@ fun StudioDetailScreen(
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             // Detail Card
             item {
-                studio.toDetailData(windowWidth)?.let {
+                studio.toDetailData(windowWidth, state.reviews)?.let {
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
@@ -151,7 +152,7 @@ fun StudioDetailScreen(
     }
 }
 
-fun Studio?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Studio?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { studio ->
         DetailData(
             itemType = ItemType.Studio,
@@ -220,6 +221,7 @@ fun Studio?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
                 },
             ),
             mediaStat = studio.attributes.stats,
+            reviews = reviews,
         )
     }
 }

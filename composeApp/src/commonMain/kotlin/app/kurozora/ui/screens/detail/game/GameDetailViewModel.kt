@@ -41,6 +41,7 @@ class GameDetailViewModel(
                 )
             )
             val moreByStudioIds = kurozoraKit.game().getMoreByStudio(gameId)
+            val reviews = kurozoraKit.game().getGameReviews(gameId)
 
             if (result is Result.Success) {
                 val game = result.data.data.firstOrNull() ?: return@launch
@@ -60,6 +61,7 @@ class GameDetailViewModel(
                         studioIds = relationships.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

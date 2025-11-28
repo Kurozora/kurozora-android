@@ -18,14 +18,16 @@ class StudioDetailViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(StudioDetailState())
     val state: StateFlow<StudioDetailState> = _state.asStateFlow()
-    fun fetchStudioDetails(characterId: String) {
+    fun fetchStudioDetails(studioId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.studio().getStudio(
-                characterId, listOf(
+                studioId, listOf(
                     "people", "shows", "games", "literatures",
                 )
             )
+
+            val reviews = kurozoraKit.studio().getStudioReviews(studioId)
 
             if (result is Result.Success) {
                 val studio = result.data.data.firstOrNull() ?: return@launch
@@ -38,6 +40,7 @@ class StudioDetailViewModel(
                         literatureIds = relationships?.literatures?.data?.map { it.id }
                             ?: emptyList(),
                         gameIds = relationships?.games?.data?.map { it.id } ?: emptyList(),
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

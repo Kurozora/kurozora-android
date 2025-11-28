@@ -17,6 +17,7 @@ import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.game.GameIdentityResponse
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.literature.LiteratureIdentityResponse
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.show.ShowIdentityResponse
 import kurozorakit.shared.Result
@@ -55,6 +56,7 @@ class PersonDetailViewModel(
                     ?: emptyList()
                 val characters = ((charactersRes as? Result.Success)?.data as? CharacterIdentityResponse)?.data
                     ?: emptyList()
+                val reviews = kurozoraKit.people().getPersonReviews(personId)
                 // State güncelle
                 _state.update {
                     it.copy(
@@ -63,6 +65,7 @@ class PersonDetailViewModel(
                         literatureIds = literatures.map { it.id },
                         gameIds = games.map { it.id },
                         characterIds = characters.map { it.id },
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

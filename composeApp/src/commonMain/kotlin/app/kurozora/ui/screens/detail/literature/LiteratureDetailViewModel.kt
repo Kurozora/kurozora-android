@@ -38,6 +38,7 @@ class LiteratureDetailViewModel(
                 )
             )
             val moreByStudioIds = kurozoraKit.literature().getMoreByStudio(litId)
+            val reviews = kurozoraKit.literature().getLiteratureReviews(litId)
 
             if (result is Result.Success) {
                 val literature = result.data.data.firstOrNull() ?: return@launch
@@ -57,6 +58,7 @@ class LiteratureDetailViewModel(
                         studioIds = relationships?.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

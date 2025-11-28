@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -20,28 +22,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Style
-import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -335,20 +323,21 @@ fun DetailContent(
 
         Spacer(Modifier.height(12.dp))
         // Stats - yatay kaydırılabilir
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) {
-            items(detail.stats.toList()) { (label, value) ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(end = 16.dp)
-                ) {
-                    Text(label.toString(), style = MaterialTheme.typography.labelSmall)
-                    Text(value.toString(), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
+        DetailStatsRow(detail.stats)
+//        LazyRow(
+//            modifier = Modifier.fillMaxWidth(),
+//            contentPadding = PaddingValues(horizontal = 16.dp)
+//        ) {
+//            items(detail.stats.toList()) { (label, value) ->
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    modifier = Modifier.padding(end = 16.dp)
+//                ) {
+//                    Text(label.toString(), style = MaterialTheme.typography.labelSmall)
+//                    Text(value.toString(), style = MaterialTheme.typography.bodyMedium)
+//                }
+//            }
+//        }
 
         Spacer(Modifier.height(16.dp))
         // Synopsis
@@ -359,8 +348,9 @@ fun DetailContent(
         }
 
         Spacer(Modifier.height(16.dp))
+        SectionHeader(title = "Ratings & Reviews", onSeeAllClick = {  })
 
-        detail.mediaStat?.let { RatingsAndReviewsCard(it) }
+        detail.mediaStat?.let { RatingsAndReviewsCard(it, reviews = detail.reviews) }
 
         Spacer(Modifier.height(16.dp))
         val columnCount = when (detail.windowWidth) {
@@ -371,6 +361,7 @@ fun DetailContent(
         }
 
         SectionHeader(title = "Information", showSeeAll = false)
+        Spacer(Modifier.height(10.dp))
         // Info Cards Grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(columnCount),
@@ -440,4 +431,70 @@ fun getInfoIcon(title: String) = when (title) {
     "Country of Origin" -> Icons.Default.Flag
     "Languages" -> Icons.Default.Language
     else -> Icons.Default.Info
+}
+
+
+// Label -> Material Icon match
+fun labelIcon(label: String) = when {
+    label.contains("season", ignoreCase = true) -> Icons.Default.Event
+    label.contains("chart", ignoreCase = true) -> Icons.Default.BarChart
+    label.contains("rated", ignoreCase = true) -> Icons.Default.Star
+    label.contains("studio", ignoreCase = true) -> Icons.Default.Home
+    label.contains("country", ignoreCase = true) -> Icons.Default.Public
+    label.contains("review", ignoreCase = true) -> Icons.Default.Comment
+    label.contains("language", ignoreCase = true) -> Icons.Default.Translate
+    label.contains("previous", ignoreCase = true) -> Icons.Default.ArrowBack
+    label.contains("next", ignoreCase = true) -> Icons.Default.ArrowForward
+    label.contains("anime", ignoreCase = true) -> Icons.Default.Movie
+    else -> null
+}
+
+@Composable
+fun DetailStatsRow(stats: Map<String, String>) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        items(stats.toList()) { (label, value) ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.widthIn(min = 100.dp).fillMaxWidth()
+            ) {
+                // Label
+                Text(
+                    text = label.uppercase(),
+                    //fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    color = Color.White
+                )
+
+                Spacer(Modifier.height(2.dp))
+
+                // Icon
+                labelIcon(label)?.let { icon ->
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = label,
+                        tint = Color.White,
+                        modifier = Modifier.size(15.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(2.dp))
+
+                // Value
+                Text(
+                    text = value,
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            }
+
+            if (label != stats.keys.last()) {
+                VerticalDivider(modifier = Modifier.fillMaxHeight(), thickness = 4.dp)
+            }
+        }
+    }
 }

@@ -40,6 +40,7 @@ import app.kurozora.ui.screens.explore.ItemType
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.show.Show
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -117,7 +118,7 @@ fun ShowDetailScreen(
             // Detail Card
             val detailShow = state.show ?: show
             item {
-                detailShow.toDetailData(windowWidth)?.let {
+                detailShow.toDetailData(windowWidth, state.reviews)?.let {
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
@@ -382,7 +383,7 @@ fun ShowDetailScreen(
     }
 }
 
-fun Show?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Show?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { show ->
         DetailData(
             itemType = ItemType.Show,
@@ -485,7 +486,8 @@ fun Show?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
             ),
             mediaStat = show.attributes.stats,
             status = show.attributes.status,
-            library = show.attributes.library
+            library = show.attributes.library,
+            reviews = reviews,
         )
     }
 }

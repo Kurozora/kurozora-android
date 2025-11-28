@@ -4,6 +4,7 @@ import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.models.character.Character
 import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.person.Person
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.show.cast.Cast
 import kurozorakit.data.models.show.related.RelatedGame
 import kurozorakit.data.models.show.related.RelatedLiterature
@@ -31,6 +32,7 @@ data class GameDetailState(
     val studios: Map<String, Studio> = emptyMap(),
     val moreByStudioIds: List<String> = emptyList(),
     val moreByStudio: Map<String, Game> = emptyMap(),
+    val reviews: List<Review> = emptyList(),
     val loadingItems: Set<String> = emptySet(),
     val libraryStatus: KKLibrary.Status? = null,
     val isLoading: Boolean = false,

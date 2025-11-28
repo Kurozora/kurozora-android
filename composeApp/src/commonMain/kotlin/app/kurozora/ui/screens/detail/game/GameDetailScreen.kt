@@ -28,6 +28,7 @@ import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.components.cards.StudioCard
 import app.kurozora.ui.screens.explore.ItemType
 import kurozorakit.data.models.game.Game
+import kurozorakit.data.models.review.Review
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +73,7 @@ fun GameDetailScreen(
             // Detail Card
             val detailLiterature = state.game ?: game
             item {
-                detailLiterature.toDetailData(windowWidth)?.let {
+                detailLiterature.toDetailData(windowWidth, state.reviews)?.let {
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
@@ -287,7 +288,7 @@ fun GameDetailScreen(
     }
 }
 
-fun Game?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Game?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { game ->
         DetailData(
             itemType = ItemType.Game,
@@ -375,6 +376,7 @@ fun Game?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
             mediaStat = game.attributes.stats,
             status = game.attributes.status,
             library = game.attributes.library,
+            reviews = reviews,
         )
     }
 }

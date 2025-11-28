@@ -4,6 +4,7 @@ import kurozorakit.data.models.character.Character
 import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.person.Person
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.show.Show
 
 data class PersonDetailState(
@@ -16,6 +17,7 @@ data class PersonDetailState(
     val literatures: Map<String, Literature> = emptyMap(),
     val gameIds: List<String> = emptyList(),
     val games: Map<String, Game> = emptyMap(),
+    val reviews: List<Review> = emptyList(),
     val loadingItems: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,

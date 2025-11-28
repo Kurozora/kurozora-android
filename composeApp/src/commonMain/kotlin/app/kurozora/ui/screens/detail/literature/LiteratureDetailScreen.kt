@@ -28,6 +28,7 @@ import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.components.cards.StudioCard
 import app.kurozora.ui.screens.explore.ItemType
 import kurozorakit.data.models.literature.Literature
+import kurozorakit.data.models.review.Review
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +73,7 @@ fun LiteratureDetailScreen(
             // Detail Card
             val detailLiterature = state.literature ?: literature
             item {
-                detailLiterature.toDetailData(windowWidth)?.let {
+                detailLiterature.toDetailData(windowWidth, state.reviews)?.let {
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
@@ -288,7 +289,7 @@ fun LiteratureDetailScreen(
     }
 }
 
-fun Literature?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Literature?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { lit ->
         DetailData(
             itemType = ItemType.Literature,
@@ -390,6 +391,7 @@ fun Literature?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
             mediaStat = lit.attributes.stats,
             status = lit.attributes.status,
             library = lit.attributes.library,
+            reviews = reviews,
         )
     }
 }

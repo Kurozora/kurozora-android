@@ -28,6 +28,8 @@ class CharacterDetailViewModel(
                 )
             )
 
+            val reviews = kurozoraKit.character().getCharacterReviews(characterId)
+
             if (result is Result.Success) {
                 val character = result.data.data.firstOrNull() ?: return@launch
                 val relationships = character.relationships
@@ -40,6 +42,7 @@ class CharacterDetailViewModel(
                         literatureIds = relationships?.literatures?.data?.map { it.id }
                             ?: emptyList(),
                         gameIds = relationships?.games?.data?.map { it.id } ?: emptyList(),
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

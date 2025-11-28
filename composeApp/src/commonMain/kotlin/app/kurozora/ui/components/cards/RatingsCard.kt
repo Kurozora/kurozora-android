@@ -2,12 +2,15 @@ package app.kurozora.ui.components.cards
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -23,9 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kurozorakit.data.models.media.MediaStat
+import kurozorakit.data.models.review.Review
 
 @Composable
-fun RatingsAndReviewsCard(mediaStat: MediaStat) {
+fun RatingsAndReviewsCard(
+    mediaStat: MediaStat,
+    reviews: List<Review>
+) {
     val textColor = Color.White
     val accentColor = Color(0xFFFF9800)
     val barColor = Color(0xFF5B6080)
@@ -126,5 +133,17 @@ fun RatingsAndReviewsCard(mediaStat: MediaStat) {
             textAlign = TextAlign.End,
             modifier = Modifier.fillMaxWidth()
         )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(reviews) { review ->
+                ReviewCard(
+                    review = review,
+                )
+            }
+        }
+
     }
 }

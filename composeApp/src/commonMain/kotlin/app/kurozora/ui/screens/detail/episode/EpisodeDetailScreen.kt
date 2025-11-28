@@ -33,6 +33,7 @@ import app.kurozora.ui.components.SectionHeader
 import app.kurozora.ui.components.cards.EpisodeCard
 import app.kurozora.ui.screens.explore.ItemType
 import kurozorakit.data.models.episode.Episode
+import kurozorakit.data.models.review.Review
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +82,7 @@ fun EpisodeDetailScreen(
                         .padding(end = 16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    episode.toDetailData(windowWidth)
+                    episode.toDetailData(windowWidth, state.reviews)
                         ?.let { DetailContent(it, onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) }) }
                 }
                 // Sağ taraf - öneriler
@@ -130,7 +131,7 @@ fun EpisodeDetailScreen(
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
                 item {
-                    episode.toDetailData(windowWidth)?.let {
+                    episode.toDetailData(windowWidth, state.reviews)?.let {
                         DetailContent(it)
                     }
                 }
@@ -185,7 +186,7 @@ fun EpisodeDetailScreen(
     }
 }
 
-fun Episode?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Episode?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { ep ->
         DetailData(
             itemType = ItemType.Episode,
@@ -223,6 +224,7 @@ fun Episode?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
                 ),
             ),
             mediaStat = ep.attributes.stats,
+            reviews = reviews,
         )
     }
 }

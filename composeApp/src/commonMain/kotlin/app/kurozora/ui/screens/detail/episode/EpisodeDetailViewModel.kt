@@ -26,6 +26,7 @@ class EpisodeDetailViewModel(
                 )
             )
             val episodeSuggestions = kurozoraKit.episode().getEpisodeSuggestions(episodeId)
+            val reviews = kurozoraKit.episode().getEpisodeReviews(episodeId)
 
             if (result is Result.Success) {
                 val episode = result.data.data.firstOrNull() ?: return@launch
@@ -40,6 +41,7 @@ class EpisodeDetailViewModel(
                         nextEpisodeId = relationships?.nextEpisodes?.data?.firstOrNull()?.id,
                         episodeSuggestionsIds = episodeSuggestions.getOrNull()?.data?.map { it.id }
                             .orEmpty(),
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

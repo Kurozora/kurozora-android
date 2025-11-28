@@ -2,6 +2,7 @@ package app.kurozora.ui.screens.detail
 
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.models.character.Character
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.show.cast.Cast
@@ -28,6 +29,7 @@ data class ShowDetailState(
     val studios: Map<String, Studio> = emptyMap(),
     val moreByStudioIds: List<String> = emptyList(),
     val moreByStudio: Map<String, Show> = emptyMap(),
+    val reviews: List<Review> = emptyList(),
     val loadingItems: Set<String> = emptySet(),
     val libraryStatus: KKLibrary.Status? = null,
     val isLoading: Boolean = false,

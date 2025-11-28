@@ -51,6 +51,7 @@ class ShowDetailViewModel(
                 )
             )
             val moreByStudioIds = kurozoraKit.show().getMoreByStudio(showId)
+            val reviews = kurozoraKit.show().getShowReviews(showId)
 
             if (result is Result.Success) {
                 val show = result.data.data.firstOrNull() ?: return@launch
@@ -70,6 +71,7 @@ class ShowDetailViewModel(
                         studioIds = relationships?.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),
+                        reviews = reviews.getOrNull()?.data ?: emptyList(),
                         isLoading = false
                     )
                 }

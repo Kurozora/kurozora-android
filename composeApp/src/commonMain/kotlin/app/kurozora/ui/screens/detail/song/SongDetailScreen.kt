@@ -22,6 +22,7 @@ import app.kurozora.ui.components.SectionHeader
 import app.kurozora.ui.components.cards.AnimeCard
 import app.kurozora.ui.components.cards.GameCard
 import app.kurozora.ui.screens.explore.ItemType
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.song.Song
 import org.koin.compose.viewmodel.koinViewModel
@@ -58,7 +59,7 @@ fun SongDetailScreen(
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             // Detail Card
             item {
-                song.toDetailData(windowWidth)?.let {
+                song.toDetailData(windowWidth, state.reviews)?.let {
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
@@ -122,7 +123,7 @@ fun SongDetailScreen(
     }
 }
 
-fun Song?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Song?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { song ->
         DetailData(
             itemType = ItemType.Song,
@@ -135,6 +136,7 @@ fun Song?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
             stats = mapOf(),
             infos = listOf(),
             mediaStat = song.attributes.stats,
+            reviews = reviews,
         )
     }
 }

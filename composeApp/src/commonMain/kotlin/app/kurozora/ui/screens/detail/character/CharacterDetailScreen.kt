@@ -25,6 +25,7 @@ import app.kurozora.ui.components.cards.LiteratureCard
 import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.screens.explore.ItemType
 import kurozorakit.data.models.character.Character
+import kurozorakit.data.models.review.Review
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +60,7 @@ fun CharacterDetailScreen(
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             // Detail Card
             item {
-                character.toDetailData(windowWidth)?.let {
+                character.toDetailData(windowWidth, state.reviews)?.let {
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
@@ -169,7 +170,7 @@ fun CharacterDetailScreen(
     }
 }
 
-fun Character?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
+fun Character?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>): DetailData? {
     return this?.let { character ->
         DetailData(
             itemType = ItemType.Character,
@@ -211,6 +212,7 @@ fun Character?.toDetailData(windowWidth: WindowWidthSizeClass): DetailData? {
                 }
             ),
             mediaStat = character.attributes.stats,
+            reviews = reviews,
         )
     }
 }
