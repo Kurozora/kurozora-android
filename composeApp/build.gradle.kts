@@ -58,7 +58,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            implementation(files("../libs/kurozorakit-android-1.2.6.jar"))
+            implementation(files("../libs/kurozorakit-1.2.4.jar"))
 
             implementation(libs.mediamp.all)
 

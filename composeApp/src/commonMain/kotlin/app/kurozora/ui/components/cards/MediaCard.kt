@@ -555,6 +555,7 @@ fun LibraryStatusButton(
                                 onStatusSelected(KKLibrary.Status.NONE)
                             },
                             colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
                             modifier = Modifier
@@ -571,11 +572,13 @@ fun LibraryStatusButton(
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(18.dp)
                                 )
+                                Spacer(Modifier.width(8.dp))
                                 Text(
                                     text = "Remove",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.error
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                         }
