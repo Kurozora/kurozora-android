@@ -164,8 +164,15 @@ fun AppNavHost(
             )
         }
         composable(Screen.Feed.route) {
+            val activeAccount = accountManager.activeAccount.collectAsState().value
+            val user = activeAccount?.userJson?.let { string -> Json.decodeFromString<User>(string) }
             FeedScreen(
                 isLoggedIn = isLoggedIn,
+                currentUser = user,
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
             )
 //            PlaceholderScreen(screenName = "Feed")
         }

@@ -169,3 +169,26 @@ object InstantUtils {
         }
     }
 }
+
+fun formatRelativeTime(instant: Instant): String {
+    val now = Clock.System.now()
+    val diff = now - instant
+
+    val seconds = diff.inWholeSeconds
+    val minutes = diff.inWholeMinutes
+    val hours = diff.inWholeHours
+    val days = diff.inWholeDays
+    val weeks = days / 7
+    val months = days / 30
+    val years = days / 365
+
+    return when {
+        seconds < 60 -> "${seconds}s"
+        minutes < 60 -> "${minutes}m"
+        hours < 24 -> "${hours}h"
+        days < 7 -> "${days}d"
+        weeks < 5 -> "${weeks}w"
+        months < 12 -> "${months}mo"
+        else -> "${years}y"
+    }
+}
