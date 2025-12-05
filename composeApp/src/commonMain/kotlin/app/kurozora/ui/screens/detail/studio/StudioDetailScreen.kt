@@ -69,7 +69,11 @@ fun StudioDetailScreen(
                         it,
                         onStatusSelected = { newStatus ->
 
-                        })
+                        },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        },
+                    )
                 }
             }
 
@@ -224,6 +228,8 @@ fun Studio?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review
             ),
             mediaStat = studio.attributes.stats,
             reviews = reviews,
+            givenRating = studio.attributes.library?.rating?.toInt() ?: 0,
+            givenReview = studio.attributes.library?.review ?: "",
         )
     }
 }

@@ -188,7 +188,7 @@ fun FeedScreen(
                             isNSFW = state.isNSFW,
                             isSpoiler = state.isSpoiler,
                             postingMessage = state.postingMessage,
-                            characterLimit = kurozorakit.data.models.feed.message.FeedMessage.maxCharacterLimit,
+                            characterLimit = FeedMessage.maxCharacterLimit,
                             onContentChange = viewModel::updateNewMessageContent,
                             onNSFWToggle = viewModel::toggleNSFW,
                             onSpoilerToggle = viewModel::toggleSpoiler,
@@ -417,8 +417,8 @@ fun FullscreenNewMessageDialog(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(),
-        //windowInsets = WindowInsets(0)
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
@@ -462,7 +462,7 @@ fun FullscreenNewMessageDialog(
                     onDismiss()
                 },
                 focusRequester = focusRequester,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
@@ -482,84 +482,80 @@ fun NewMessageComposer(
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Column(
+        modifier = modifier.padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Content Input
+        OutlinedTextField(
+            value = content,
+            onValueChange = onContentChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .focusRequester(focusRequester),
+            placeholder = { Text("What's happening?") },
+            singleLine = false,
+            maxLines = 5,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { onSendClick() }
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+
+        // Character Counter
+        Text(
+            text = "${content.length}/$characterLimit",
+            style = MaterialTheme.typography.labelSmall,
+            color = if (content.length > characterLimit) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.End)
+        )
+
+        // Action Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Content Input
-            OutlinedTextField(
-                value = content,
-                onValueChange = onContentChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                placeholder = { Text("What's happening?") },
-                singleLine = false,
-                maxLines = 5,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { onSendClick() }
-                ),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // Character Counter
-            Text(
-                text = "${content.length}/$characterLimit",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (content.length > characterLimit) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.End)
-            )
-
-            // Action Row
+            // Toggle Buttons
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Toggle Buttons
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = isNSFW,
-                        onClick = onNSFWToggle,
-                        label = { Text("NSFW") },
-                        leadingIcon = if (isNSFW) {
-                            { Icon(Icons.Default.Check, contentDescription = null) }
-                        } else null
-                    )
+                FilterChip(
+                    selected = isNSFW,
+                    onClick = onNSFWToggle,
+                    label = { Text("NSFW") },
+                    leadingIcon = if (isNSFW) {
+                        { Icon(Icons.Default.Check, contentDescription = null) }
+                    } else null
+                )
 
-                    FilterChip(
-                        selected = isSpoiler,
-                        onClick = onSpoilerToggle,
-                        label = { Text("Spoiler") },
-                        leadingIcon = if (isSpoiler) {
-                            { Icon(Icons.Default.Check, contentDescription = null) }
-                        } else null
-                    )
-                }
+                FilterChip(
+                    selected = isSpoiler,
+                    onClick = onSpoilerToggle,
+                    label = { Text("Spoiler") },
+                    leadingIcon = if (isSpoiler) {
+                        { Icon(Icons.Default.Check, contentDescription = null) }
+                    } else null
+                )
+            }
 
-                // Send Button
-                Button(
-                    onClick = onSendClick,
-                    enabled = content.trim().isNotEmpty() && content.length <= characterLimit && !postingMessage,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    if (postingMessage) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = Color.White
-                        )
-                    } else {
-                        Icon(Icons.Default.Send, contentDescription = "Send")
-                    }
+            // Send Button
+            Button(
+                onClick = onSendClick,
+                enabled = content.trim().isNotEmpty() && content.length <= characterLimit && !postingMessage,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                if (postingMessage) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Icon(Icons.Default.Send, contentDescription = "Send")
                 }
             }
         }

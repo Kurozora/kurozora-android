@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -20,22 +22,34 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,6 +65,7 @@ import io.kamel.image.asyncPainterResource
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.enums.WatchStatus
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailContent(
     detail: DetailData,
@@ -58,7 +73,12 @@ fun DetailContent(
     onMarkAsWatchedClick: () -> Unit = {},
     onRemindClick: () -> Unit = {},
     onFavoriteClick: () -> Unit = {},
+    onRateSubmit: (Int, String) -> Unit = { _, _ -> },
 ) {
+    var showRatingModal by remember { mutableStateOf(false) }
+    var rating by remember { mutableIntStateOf(detail.givenRating) }
+    var reviewText by remember { mutableStateOf(detail.givenReview) }
+
     Column {
         when (detail.itemType) {
             ItemType.Show, ItemType.Literature, ItemType.Game, ItemType.Episode -> {
@@ -354,7 +374,168 @@ fun DetailContent(
         Spacer(Modifier.height(16.dp))
         SectionHeader(title = "Ratings & Reviews", onSeeAllClick = {  })
 
-        detail.mediaStat?.let { RatingsAndReviewsCard(it, reviews = detail.reviews) }
+        detail.mediaStat?.let {
+            Column {
+                RatingsAndReviewsCard(it, reviews = detail.reviews)
+
+                // Rate Button
+                Button(
+                    onClick = { showRatingModal = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Rate",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Rate this ${detail.itemType.name.lowercase()}")
+                }
+            }
+        }
+
+        // Full Screen Modal Bottom Sheet
+        if (showRatingModal) {
+            ModalBottomSheet(
+                onDismissRequest = { showRatingModal = false },
+                sheetState = rememberModalBottomSheetState(
+                    skipPartiallyExpanded = true
+                ),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 8.dp,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 400.dp, max = 800.dp)
+                        .padding(16.dp)
+                ) {
+                    // Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Rate ${detail.title}",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        IconButton(onClick = { showRatingModal = false }) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Rating Stars
+                    Text(
+                        text = "Your Rating",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Star Rating Component
+                    StarRating(
+                        rating = rating,
+                        onRatingChange = { rating = it },
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+//                    Text(
+//                        text = when (rating) {
+//                            0 -> "Tap a star to rate"
+//                            1 -> "Poor"
+//                            2 -> "Fair"
+//                            3 -> "Good"
+//                            4 -> "Very Good"
+//                            5 -> "Excellent"
+//                            else -> ""
+//                        },
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+//                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Review Text Field
+                    Text(
+                        text = "Your Review (Optional)",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    BasicTextField(
+                        value = reviewText,
+                        onValueChange = { reviewText = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        textStyle = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp
+                        ),
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (reviewText.isEmpty()) {
+                                    Text(
+                                        text = "Share your thoughts about this ${detail.itemType.name.lowercase()}...",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        fontSize = 16.sp
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Submit Button
+                    Button(
+                        onClick = {
+                            onRateSubmit(rating, reviewText)
+                            showRatingModal = false
+                            // Reset form
+                            rating = 0
+                            reviewText = ""
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        enabled = rating > 0,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Submit Review",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
 
         Spacer(Modifier.height(16.dp))
         val columnCount = when (detail.windowWidth) {
@@ -364,20 +545,22 @@ fun DetailContent(
             else -> 2
         }
 
-        SectionHeader(title = "Information", showSeeAll = false)
-        Spacer(Modifier.height(10.dp))
-        // Info Cards Grid
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(columnCount),
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 1000.dp) // gerekirse scroll'u sınırlamak için
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(detail.infos) { info ->
-                InfoCardItem(info)
+        detail.infos.isNotEmpty().let {
+            SectionHeader(title = "Information", showSeeAll = false)
+            Spacer(Modifier.height(10.dp))
+            // Info Cards Grid
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columnCount),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 1000.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(detail.infos) { info ->
+                    InfoCardItem(info)
+                }
             }
         }
     }
@@ -498,6 +681,35 @@ fun DetailStatsRow(stats: Map<String, String>) {
 
             if (label != stats.keys.last()) {
                 VerticalDivider(modifier = Modifier.fillMaxHeight(), thickness = 4.dp)
+            }
+        }
+    }
+}
+
+// Star Rating Component
+@Composable
+fun StarRating(
+    rating: Int,
+    onRatingChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    maxStars: Int = 5,
+    starSize: Int = 30
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        for (i in 1..maxStars) {
+            IconButton(
+                onClick = { onRatingChange(i) },
+                modifier = Modifier.size(starSize.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "Rate $i star${if (i > 1) "s" else ""}",
+                    tint = if (i <= rating) MaterialTheme.colorScheme.primary else Color.Gray,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

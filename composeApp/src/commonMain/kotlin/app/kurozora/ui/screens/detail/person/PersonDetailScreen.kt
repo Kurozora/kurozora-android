@@ -69,7 +69,11 @@ fun PersonDetailScreen(
                         it,
                         onStatusSelected = { newStatus ->
 
-                        })
+                        },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        },
+                    )
                 }
             }
 
@@ -210,6 +214,8 @@ fun Person?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review
             ),
             mediaStat = person.attributes.stats,
             reviews = reviews,
+//            givenRating = person.attributes.library?.rating?.toInt() ?: 0,
+//            givenReview = person.attributes.library?.review ?: "",
         )
     }
 }

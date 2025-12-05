@@ -90,6 +90,9 @@ fun LiteratureDetailScreen(
                         onRemindClick = {
                             viewModel.updateReminderStatus(literature.id)
                         },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        }
                     )
                 }
             }
@@ -392,6 +395,8 @@ fun Literature?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Re
             status = lit.attributes.status,
             library = lit.attributes.library,
             reviews = reviews,
+            givenRating = lit.attributes.library?.rating?.toInt() ?: 0,
+            givenReview = lit.attributes.library?.review ?: ""
         )
     }
 }

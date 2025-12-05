@@ -66,7 +66,11 @@ fun SongDetailScreen(
                         it,
                         onStatusSelected = { newStatus ->
 
-                        })
+                        },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        },
+                    )
                 }
             }
 
@@ -139,6 +143,8 @@ fun Song?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>)
             infos = listOf(),
             mediaStat = song.attributes.stats,
             reviews = reviews,
+            givenRating = song.attributes.library?.rating?.toInt() ?: 0,
+            givenReview = song.attributes.library?.review ?: "",
         )
     }
 }

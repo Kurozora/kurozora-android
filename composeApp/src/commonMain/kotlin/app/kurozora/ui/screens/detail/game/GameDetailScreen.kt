@@ -90,6 +90,9 @@ fun GameDetailScreen(
                         onRemindClick = {
                             viewModel.updateReminderStatus(game.id)
                         },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        }
                     )
                 }
             }
@@ -377,6 +380,8 @@ fun Game?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>)
             status = game.attributes.status,
             library = game.attributes.library,
             reviews = reviews,
+            givenRating = game.attributes.library?.rating?.toInt() ?: 0,
+            givenReview = game.attributes.library?.review ?: ""
         )
     }
 }

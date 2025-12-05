@@ -84,7 +84,12 @@ fun EpisodeDetailScreen(
                 ) {
                     val detailEpisode = state.episode ?: episode
                     detailEpisode.toDetailData(windowWidth, state.reviews)
-                        ?.let { DetailContent(it, onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) }) }
+                        ?.let { DetailContent(it,
+                            onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) },
+                            onRateSubmit = { rating, review ->
+                                viewModel.postReview(it.id,rating, review)
+                            },
+                        ) }
                 }
                 // Sağ taraf - öneriler
                 Column(
@@ -226,7 +231,9 @@ fun Episode?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Revie
             ),
             mediaStat = ep.attributes.stats,
             reviews = reviews,
-            watchStatus = ep.attributes.watchStatus
+            watchStatus = ep.attributes.watchStatus,
+//            givenRating = ep.attributes.library?.rating?.toInt() ?: 0,
+//            givenReview = ep.attributes.library?.review ?: "",
         )
     }
 }

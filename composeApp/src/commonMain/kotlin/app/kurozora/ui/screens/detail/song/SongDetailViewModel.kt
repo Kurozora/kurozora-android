@@ -154,4 +154,30 @@ class SongDetailViewModel(
             }
         }
     }
+
+    fun postReview(songId: String, score: Int, review: String) {
+        viewModelScope.launch {
+            val result = kurozoraKit.song().rateSong(
+                songId = songId,
+                rating = score.toDouble(),
+                review = review
+            )
+            when (result) {
+                is Result.Success -> {
+                    val updatedReviews = kurozoraKit.song().getSongReviews(songId)
+
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = updatedReviews.getOrNull()?.data ?: _state.value.reviews,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+
+                }
+            }
+        }
+    }
+
 }

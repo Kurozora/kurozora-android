@@ -348,4 +348,29 @@ class LiteratureDetailViewModel(
             }
         }
     }
+
+    fun postReview(litId: String, score: Int, review: String) {
+        viewModelScope.launch {
+            val result = kurozoraKit.literature().rateLiterature(
+                literatureId = litId,
+                rating = score.toDouble(),
+                review = review
+            )
+            when (result) {
+                is Result.Success -> {
+                    val updatedReviews = kurozoraKit.literature().getLiteratureReviews(litId)
+
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = updatedReviews.getOrNull()?.data ?: _state.value.reviews,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+
+                }
+            }
+        }
+    }
 }

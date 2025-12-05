@@ -351,4 +351,29 @@ class GameDetailViewModel(
             }
         }
     }
+
+    fun postReview(gameId: String, score: Int, review: String) {
+        viewModelScope.launch {
+            val result = kurozoraKit.game().rateGame(
+                gameId = gameId,
+                rating = score.toDouble(),
+                review = review
+            )
+            when (result) {
+                is Result.Success -> {
+                    val updatedReviews = kurozoraKit.game().getGameReviews(gameId)
+
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = updatedReviews.getOrNull()?.data ?: _state.value.reviews,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+
+                }
+            }
+        }
+    }
 }

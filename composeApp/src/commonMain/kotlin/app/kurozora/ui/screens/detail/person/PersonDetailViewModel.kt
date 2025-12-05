@@ -240,4 +240,30 @@ class PersonDetailViewModel(
             }
         }
     }
+
+    fun postReview(personId: String, score: Int, review: String) {
+        viewModelScope.launch {
+            val result = kurozoraKit.people().ratePerson(
+                personId = personId,
+                rating = score.toDouble(),
+                review = review
+            )
+            when (result) {
+                is Result.Success -> {
+                    val updatedReviews = kurozoraKit.people().getPersonReviews(personId)
+
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = updatedReviews.getOrNull()?.data ?: _state.value.reviews,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+
+                }
+            }
+        }
+    }
+
 }

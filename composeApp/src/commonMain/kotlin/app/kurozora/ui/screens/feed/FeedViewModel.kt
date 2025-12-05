@@ -325,9 +325,12 @@ class FeedViewModel(
             } else {
                 // Reshare
                 val request = FeedMessageRequest(
-                    content = "",
+                    content = message.attributes.content,
                     parentIdentity = message.id,
-                    isReShare = true
+                    isReShare = true,
+                    isReply = false,
+                    isNSFW = message.attributes.isNSFW,
+                    isSpoiler = message.attributes.isSpoiler
                 )
 
                 when (val result = kurozoraKit.feed().postFeedMessage(request)) {

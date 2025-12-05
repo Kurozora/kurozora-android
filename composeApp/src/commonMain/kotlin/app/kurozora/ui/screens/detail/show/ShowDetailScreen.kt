@@ -135,6 +135,9 @@ fun ShowDetailScreen(
                         onRemindClick = {
                             viewModel.updateReminderStatus(show.id)
                         },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        }
                     )
                 }
             }
@@ -488,6 +491,8 @@ fun Show?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>)
             status = show.attributes.status,
             library = show.attributes.library,
             reviews = reviews,
+            givenRating = show.attributes.library?.rating?.toInt() ?: 0,
+            givenReview = show.attributes.library?.review ?: ""
         )
     }
 }

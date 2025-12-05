@@ -104,4 +104,30 @@ class EpisodeDetailViewModel(
             }
         }
     }
+
+    fun postReview(episodeId: String, score: Int, review: String) {
+        viewModelScope.launch {
+            val result = kurozoraKit.episode().rateEpisode(
+                episodeId = episodeId,
+                rating = score.toDouble(),
+                review = review
+            )
+            when (result) {
+                is Result.Success -> {
+                    val updatedReviews = kurozoraKit.episode().getEpisodeReviews(episodeId)
+
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = updatedReviews.getOrNull()?.data ?: _state.value.reviews,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+
+                }
+            }
+        }
+    }
+
 }

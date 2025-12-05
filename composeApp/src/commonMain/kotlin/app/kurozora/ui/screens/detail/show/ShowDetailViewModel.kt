@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.models.character.Character
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.show.cast.Cast
@@ -335,6 +336,31 @@ class ShowDetailViewModel(
                 }
             } else {
                 println("✅ Reminder updated successfully")
+            }
+        }
+    }
+
+    fun postReview(showId: String, score: Int, review: String) {
+        viewModelScope.launch {
+            val result = kurozoraKit.show().rateShow(
+                showId = showId,
+                rating = score.toDouble(),
+                review = review
+            )
+            when (result) {
+                is Result.Success -> {
+                    val updatedReviews = kurozoraKit.show().getShowReviews(showId)
+
+                    _state.update { currentState ->
+                        currentState.copy(
+                            reviews = updatedReviews.getOrNull()?.data ?: _state.value.reviews,
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+
+                }
             }
         }
     }

@@ -69,7 +69,11 @@ fun CharacterDetailScreen(
                         it,
                         onStatusSelected = { newStatus ->
 
-                        })
+                        },
+                        onRateSubmit = { rating, review ->
+                            viewModel.postReview(it.id,rating, review)
+                        },
+                    )
                 }
             }
 
@@ -217,6 +221,8 @@ fun Character?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Rev
             ),
             mediaStat = character.attributes.stats,
             reviews = reviews,
+//            givenRating = character.attributes.library?.rating?.toInt() ?: 0,
+//            givenReview = character.attributes.library?.review ?: "",
         )
     }
 }

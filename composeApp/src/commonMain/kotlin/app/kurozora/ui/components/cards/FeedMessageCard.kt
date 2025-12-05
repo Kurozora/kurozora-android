@@ -74,7 +74,26 @@ fun FeedMessageCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape)
+                    .clip(CircleShape),
+                onFailure = {
+                    // Fallback içerik
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = feedMessage.relationships.users.data.firstOrNull()?.attributes?.username?.first()
+                                ?.uppercaseChar().toString(),
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.width(8.dp))

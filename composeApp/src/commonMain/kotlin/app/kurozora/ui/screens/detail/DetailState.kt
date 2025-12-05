@@ -25,6 +25,8 @@ data class DetailData(
     val library: LibraryAttributes? = null,
     val reviews: List<Review> = emptyList(),
     val watchStatus: WatchStatus? = null,
+    val givenRating: Int = 0,
+    val givenReview: String = "",
 )
 
 data class InfoCard(
