@@ -15,7 +15,7 @@ import kurozorakit.data.models.theme.Theme
 import kurozorakit.shared.Result
 
 enum class ItemType {
-    Show, Game, Literature, Character, Episode, Genre, Theme, Song, Person, Recap, Studio, Season, Cast, User, Staff
+    Show, Game, Literature, Character, Episode, Genre, Theme, Song, Person, Recap, Studio, Season, Cast, User, Staff, Review
 }
 
 class ExploreViewModel(

@@ -35,8 +35,10 @@ fun StudioDetailScreen(
     studio: Studio,
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
-    onNavigateToAnimeDetails: (Show) -> Unit,
-    onNavigateToMangaDetails: (Literature) -> Unit,
+    onNavigateToItemDetail: (Any) -> Unit,
+    onNavigateToAnimeList: (String) -> Unit,
+    onNavigateToMangaList: (String) -> Unit,
+    onNavigateToGameList: (String) -> Unit,
     viewModel: StudioDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -66,13 +68,13 @@ fun StudioDetailScreen(
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
-                            //viewModel.updateLibraryStatus(state.show!!.id, newStatus, ItemType.Show, SectionType.MainShow)
+
                         })
                 }
             }
 
             if (state.showIds.isNotEmpty()) {
-                item { SectionHeader(title = "Anime") }
+                item { SectionHeader(title = "Anime", onSeeAllClick = { onNavigateToAnimeList(studio.id) }) }
                 item {
                     ItemList(
                         items = state.showIds,
@@ -84,9 +86,9 @@ fun StudioDetailScreen(
                             if (show != null) {
                                 AnimeCard(
                                     show,
-                                    onClick = { onNavigateToAnimeDetails(show) },
+                                    onClick = { onNavigateToItemDetail(show) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
                                     }
                                 )
                             } else {
@@ -98,7 +100,7 @@ fun StudioDetailScreen(
             }
 
             if (state.literatureIds.isNotEmpty()) {
-                item { SectionHeader(title = "Manga") }
+                item { SectionHeader(title = "Manga", onSeeAllClick = { onNavigateToMangaList(studio.id) }) }
                 item {
                     ItemList(
                         items = state.literatureIds,
@@ -110,9 +112,9 @@ fun StudioDetailScreen(
                             if (literature != null) {
                                 LiteratureCard(
                                     literature,
-                                    onClick = { onNavigateToMangaDetails(literature) },
+                                    onClick = { onNavigateToItemDetail(literature) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(literature.id, newStatus, ItemType.Literature, SectionType.RelatedLiteratures)
                                     }
                                 )
                             } else {
@@ -124,7 +126,7 @@ fun StudioDetailScreen(
             }
 
             if (state.gameIds.isNotEmpty()) {
-                item { SectionHeader(title = "Game") }
+                item { SectionHeader(title = "Game", onSeeAllClick = { onNavigateToGameList(studio.id) }) }
                 item {
                     ItemList(
                         items = state.gameIds,
@@ -136,9 +138,9 @@ fun StudioDetailScreen(
                             if (game != null) {
                                 GameCard(
                                     game,
-                                    onClick = { },
+                                    onClick = { onNavigateToItemDetail(game) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(game.id, newStatus, ItemType.Game, SectionType.RelatedGames)
                                     }
                                 )
                             } else {

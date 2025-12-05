@@ -49,13 +49,13 @@ import app.kurozora.ui.screens.explore.ItemType
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kurozorakit.data.enums.KKLibrary
+import kurozorakit.data.enums.WatchStatus
 
 @Composable
 fun DetailContent(
     detail: DetailData,
     onStatusSelected: (KKLibrary.Status) -> Unit = {},
     onMarkAsWatchedClick: () -> Unit = {},
-    onEditClick: () -> Unit = {},
     onRemindClick: () -> Unit = {},
     onFavoriteClick: () -> Unit = {},
 ) {
@@ -173,7 +173,11 @@ fun DetailContent(
                                         modifier = Modifier.height(30.dp)
                                     ) {
                                         Text(
-                                            "MARK AS WATCHED",
+                                            text = if (detail.watchStatus == WatchStatus.watched) {
+                                                "WATCHED"
+                                            } else {
+                                                "MARK AS WATCHED"
+                                            },
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold
                                         )

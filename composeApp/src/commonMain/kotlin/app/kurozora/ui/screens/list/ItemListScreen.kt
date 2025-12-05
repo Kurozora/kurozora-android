@@ -247,6 +247,8 @@ fun ItemListScreen(
                                         val person = item.relationships.person.data.first()
                                         PersonCard(person, subTitle = role, onClick = { onNavigateToItemDetail(person) })
                                     } ?: ItemPlaceholder()
+
+                                    ItemType.Review -> TODO()
                                 }
                             }
                         }

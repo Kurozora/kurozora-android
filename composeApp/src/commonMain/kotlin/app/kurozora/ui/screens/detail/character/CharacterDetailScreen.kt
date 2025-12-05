@@ -35,6 +35,10 @@ fun CharacterDetailScreen(
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
+    onNavigateToAnimeList: (String) -> Unit,
+    onNavigateToMangaList: (String) -> Unit,
+    onNavigateToGameList: (String) -> Unit,
+    onNavigateToPeopleList: (String) -> Unit,
     viewModel: CharacterDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -64,13 +68,13 @@ fun CharacterDetailScreen(
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
-                            //viewModel.updateLibraryStatus(state.show!!.id, newStatus, ItemType.Show, SectionType.MainShow)
+
                         })
                 }
             }
 
             if (state.showIds.isNotEmpty()) {
-                item { SectionHeader(title = "Anime") }
+                item { SectionHeader(title = "Anime", onSeeAllClick = { onNavigateToAnimeList(character.id) }) }
                 item {
                     ItemList(
                         items = state.showIds,
@@ -84,7 +88,7 @@ fun CharacterDetailScreen(
                                     show,
                                     onClick = { onNavigateToItemDetail(show) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
                                     }
                                 )
                             } else {
@@ -96,7 +100,7 @@ fun CharacterDetailScreen(
             }
 
             if (state.literatureIds.isNotEmpty()) {
-                item { SectionHeader(title = "Manga") }
+                item { SectionHeader(title = "Manga", onSeeAllClick = { onNavigateToMangaList(character.id) }) }
                 item {
                     ItemList(
                         items = state.literatureIds,
@@ -110,7 +114,7 @@ fun CharacterDetailScreen(
                                     literature,
                                     onClick = { onNavigateToItemDetail(literature) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(literature.id, newStatus, ItemType.Literature, SectionType.RelatedLiteratures)
                                     }
                                 )
                             } else {
@@ -122,7 +126,7 @@ fun CharacterDetailScreen(
             }
 
             if (state.peopleIds.isNotEmpty()) {
-                item { SectionHeader(title = "People") }
+                item { SectionHeader(title = "People", onSeeAllClick = { onNavigateToPeopleList(character.id) }) }
                 item {
                     ItemList(
                         items = state.peopleIds,
@@ -142,7 +146,7 @@ fun CharacterDetailScreen(
             }
 
             if (state.gameIds.isNotEmpty()) {
-                item { SectionHeader(title = "Game") }
+                item { SectionHeader(title = "Game", onSeeAllClick = { onNavigateToGameList(character.id) }) }
                 item {
                     ItemList(
                         items = state.gameIds,
@@ -156,7 +160,7 @@ fun CharacterDetailScreen(
                                     game,
                                     onClick = { },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(game.id, newStatus, ItemType.Game, SectionType.RelatedGames)
                                     }
                                 )
                             } else {

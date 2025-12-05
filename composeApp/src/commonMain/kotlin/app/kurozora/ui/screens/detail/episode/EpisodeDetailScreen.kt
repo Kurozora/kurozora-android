@@ -82,7 +82,8 @@ fun EpisodeDetailScreen(
                         .padding(end = 16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    episode.toDetailData(windowWidth, state.reviews)
+                    val detailEpisode = state.episode ?: episode
+                    detailEpisode.toDetailData(windowWidth, state.reviews)
                         ?.let { DetailContent(it, onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) }) }
                 }
                 // Sağ taraf - öneriler
@@ -225,6 +226,7 @@ fun Episode?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Revie
             ),
             mediaStat = ep.attributes.stats,
             reviews = reviews,
+            watchStatus = ep.attributes.watchStatus
         )
     }
 }

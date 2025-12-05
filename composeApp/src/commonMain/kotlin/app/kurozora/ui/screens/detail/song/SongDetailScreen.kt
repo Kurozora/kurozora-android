@@ -33,7 +33,9 @@ fun SongDetailScreen(
     song: Song,
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
-    onNavigateToAnimeDetails: (Show) -> Unit,
+    onNavigateToItemDetail: (Any) -> Unit,
+    onNavigateToAnimeList: (String) -> Unit,
+    onNavigateToGameList: (String) -> Unit,
     viewModel: SongDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -63,13 +65,13 @@ fun SongDetailScreen(
                     DetailContent(
                         it,
                         onStatusSelected = { newStatus ->
-                            //viewModel.updateLibraryStatus(state.show!!.id, newStatus, ItemType.Show, SectionType.MainShow)
+
                         })
                 }
             }
 
             if (state.showIds.isNotEmpty()) {
-                item { SectionHeader(title = "Anime") }
+                item { SectionHeader(title = "Anime", onSeeAllClick = { onNavigateToAnimeList(song.id) }) }
                 item {
                     ItemList(
                         items = state.showIds,
@@ -81,9 +83,9 @@ fun SongDetailScreen(
                             if (show != null) {
                                 AnimeCard(
                                     show,
-                                    onClick = { onNavigateToAnimeDetails(show) },
+                                    onClick = { onNavigateToItemDetail(show) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
                                     }
                                 )
                             } else {
@@ -95,7 +97,7 @@ fun SongDetailScreen(
             }
 
             if (state.gameIds.isNotEmpty()) {
-                item { SectionHeader(title = "Game") }
+                item { SectionHeader(title = "Game", onSeeAllClick = { onNavigateToGameList(song.id) }) }
                 item {
                     ItemList(
                         items = state.gameIds,
@@ -107,9 +109,9 @@ fun SongDetailScreen(
                             if (game != null) {
                                 GameCard(
                                     game,
-                                    onClick = { },
+                                    onClick = { onNavigateToItemDetail(game) },
                                     onStatusSelected = { newStatus ->
-                                        //viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
+                                        viewModel.updateLibraryStatus(game.id, newStatus, ItemType.Game, SectionType.RelatedGames)
                                     }
                                 )
                             } else {

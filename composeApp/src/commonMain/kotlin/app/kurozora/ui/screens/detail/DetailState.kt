@@ -2,6 +2,7 @@ package app.kurozora.ui.screens.detail
 
 import androidx.window.core.layout.WindowWidthSizeClass
 import app.kurozora.ui.screens.explore.ItemType
+import kurozorakit.data.enums.WatchStatus
 import kurozorakit.data.models.library.LibraryAttributes
 import kurozorakit.data.models.media.MediaStat
 import kurozorakit.data.models.review.Review
@@ -23,6 +24,7 @@ data class DetailData(
     val status: AiringStatus? = null,
     val library: LibraryAttributes? = null,
     val reviews: List<Review> = emptyList(),
+    val watchStatus: WatchStatus? = null,
 )
 
 data class InfoCard(

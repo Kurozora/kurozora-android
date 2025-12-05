@@ -2,12 +2,15 @@ package app.kurozora.ui.screens.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.kurozora.ui.screens.explore.ItemType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
+import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.show.Show
 import kurozorakit.shared.Result
@@ -89,6 +92,65 @@ class SongDetailViewModel(
                 }
             } else {
                 _state.update { it.copy(loadingItems = it.loadingItems - id) }
+            }
+        }
+    }
+
+    fun updateLibraryStatus(
+        itemId: String,
+        newStatus: KKLibrary.Status,
+        type: ItemType,
+        section: SectionType,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val kind = when (type) {
+                    ItemType.Show -> KKLibrary.Kind.SHOWS
+                    ItemType.Literature -> KKLibrary.Kind.LITERATURES
+                    ItemType.Game -> KKLibrary.Kind.GAMES
+                    else -> null
+                }
+
+                if (kind == null) {
+                    println("⚠️ Unsupported type for library update: $type")
+                    return@launch
+                }
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+
+                if (result is Result.Success) {
+                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+
+                    when (section) {
+                        SectionType.RelatedShows -> {
+                            val updatedShows = _state.value.shows.toMutableMap()
+                            val show = updatedShows[itemId]
+                            val updated = show?.copy(
+                                attributes = show.attributes.copy(
+                                    library = show.attributes.library?.copy(status = newStatus)
+                                )
+                            ) ?: show!!
+                            updatedShows[itemId] = updated
+                            _state.value = _state.value.copy(shows = updatedShows)
+                        }
+
+                        SectionType.RelatedGames -> {
+                            val updatedGames = _state.value.games.toMutableMap()
+                            val game = updatedGames[itemId]
+                            val updated = game?.copy(
+                                attributes = game.attributes.copy(
+                                    library = game.attributes.library?.copy(status = newStatus)
+                                )
+                            ) ?: game!!
+                            updatedGames[itemId] = updated
+                            _state.value = _state.value.copy(games = updatedGames)
+                        }
+                        else -> {}
+                    }
+                } else {
+                    println("⚠️ Failed to update library status for $itemId: $result")
+                }
+            } catch (e: Exception) {
+                println("❌ Error updating library status: ${e.localizedMessage}")
             }
         }
     }

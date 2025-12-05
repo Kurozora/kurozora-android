@@ -342,4 +342,84 @@ sealed class Screen(
             return "profileFollowersList?userId=$userId"
         }
     }
+
+    object CharacterAnimeList : Screen("characterAnimeList", "Character Anime List") {
+        fun createRoute(characterId: String): String {
+            return "characterAnimeList?characterId=$characterId"
+        }
+    }
+
+    object CharacterMangaList : Screen("characterMangaList", "Character Manga List") {
+        fun createRoute(characterId: String): String {
+            return "characterMangaList?characterId=$characterId"
+        }
+    }
+
+    object CharacterGameList : Screen("characterGameList", "Character Game List") {
+        fun createRoute(characterId: String): String {
+            return "characterGameList?characterId=$characterId"
+        }
+    }
+
+    object CharacterPeopleList : Screen("characterPeopleList", "Character People List") {
+        fun createRoute(characterId: String): String {
+            return "characterPeopleList?characterId=$characterId"
+        }
+    }
+
+    object PersonAnimeList : Screen("personAnimeList", "Person Anime List") {
+        fun createRoute(personId: String): String {
+            return "personAnimeList?personId=$personId"
+        }
+    }
+
+    object PersonMangaList : Screen("personMangaList", "Person Manga List") {
+        fun createRoute(personId: String): String {
+            return "personMangaList?personId=$personId"
+        }
+    }
+
+    object PersonGameList : Screen("personGameList", "Person Game List") {
+        fun createRoute(personId: String): String {
+            return "personGameList?personId=$personId"
+        }
+    }
+
+    object PersonCharacterList : Screen("personCharacterList", "Person Character List") {
+        fun createRoute(personId: String): String {
+            return "personCharacterList?personId=$personId"
+        }
+    }
+
+    object SongAnimeList : Screen("songAnimeList", "Song Anime List") {
+        fun createRoute(songId: String): String {
+            return "songAnimeList?songId=$songId"
+        }
+    }
+
+    object SongGameList : Screen("songGameList", "Song Game List") {
+        fun createRoute(songId: String): String {
+            return "songGameList?songId=$songId"
+        }
+    }
+
+    object StudioAnimeList : Screen("studioAnimeList", "Studio Anime List") {
+        fun createRoute(studioId: String): String {
+            return "studioAnimeList?studioId=$studioId"
+        }
+    }
+
+    object StudioMangaList : Screen("studioMangaList", "Studio Manga List") {
+        fun createRoute(studioId: String): String {
+            return "studioMangaList?studioId=$studioId"
+        }
+    }
+
+    object StudioGameList : Screen("studioGameList", "Studio Game List") {
+        fun createRoute(studioId: String): String {
+            return "studioGameList?studioId=$studioId"
+        }
+    }
+
+
 }
