@@ -177,9 +177,13 @@ fun ItemListScreen(
                             } else {
                                 when (itemType) {
                                     ItemType.Show -> (item as? Show)?.let {
-                                        AnimeCard(it, onClick = { onNavigateToItemDetail(it) }, onStatusSelected = { newStatus ->
-                                            viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Show)
-                                        })
+                                        AnimeCard(it,
+                                            onClick = { onNavigateToItemDetail(it) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Show)
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Literature -> (item as? Literature)?.let {
@@ -203,7 +207,7 @@ fun ItemListScreen(
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Genre -> (item as? Genre)?.let {
-                                        GenreCard(it, onClick = {})
+                                        GenreCard(it, onClick = {}, detailed = true)
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Theme -> (item as? Theme)?.let {

@@ -40,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -84,6 +85,7 @@ fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
     onNavigateToFavoriteScreen: () -> Unit,
     onNavigateToReminderScreen: () -> Unit,
+    onNavigateToLoginScreen: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -110,88 +112,81 @@ fun LibraryScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        // 1️⃣ Başlık
-//                        Text(
-//                            text = when (state.selectedTab) {
-//                                LibraryTab.Animes -> "Anime Library"
-//                                LibraryTab.Mangas -> "Manga Library"
-//                                LibraryTab.Games -> "Game Library"
-//                            },
-//                            style = MaterialTheme.typography.titleMedium,
-//                            maxLines = 1
-//                        )
-//
-//                        Spacer(modifier = Modifier.height(4.dp))
-                        // 2️⃣ Search Bar
-                        TextField(
-                            value = text,
-                            onValueChange = {
-                                text = it
-                                //viewModel.search(it)
-                            },
-                            placeholder = {
-                                Text(
-                                    text = "Search...",
-                                    //fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            singleLine = true,
-                            textStyle = LocalTextStyle.current.copy(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                //fontSize = 12.sp
-                            ),
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            trailingIcon = {
-                                if (text.isNotEmpty()) {
-                                    IconButton(onClick = { text = "" }) {
-                                        Icon(
-                                            Icons.Default.Close,
-                                            contentDescription = "Clear",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                    if (isLoggedIn) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            TextField(
+                                value = text,
+                                onValueChange = {
+                                    text = it
+                                    //viewModel.search(it)
+                                },
+                                placeholder = {
+                                    Text(
+                                        text = "Search...",
+                                        //fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                singleLine = true,
+                                textStyle = LocalTextStyle.current.copy(
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    //fontSize = 12.sp
+                                ),
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (text.isNotEmpty()) {
+                                        IconButton(onClick = { text = "" }) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Clear",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
-                                }
-                            },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                cursorColor = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(70.dp)
-                        )
+                                },
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    cursorColor = MaterialTheme.colorScheme.primary
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(70.dp)
+                            )
+                        }
+                    } else {
+                        Text(text = "Library")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToFavoriteScreen() }) {
-                        Icon(
-                            Icons.Default.Favorite,
-                            contentDescription = "Favorite",
-                        )
-                    }
-                    IconButton(onClick = { onNavigateToReminderScreen() }) {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = "Reminders",
-                        )
-                    }
-                    IconButton(onClick = { showFilterSheet = true }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
+                    if (isLoggedIn) {
+                        IconButton(onClick = { onNavigateToFavoriteScreen() }) {
+                            Icon(
+                                Icons.Default.Favorite,
+                                contentDescription = "Favorite",
+                            )
+                        }
+                        IconButton(onClick = { onNavigateToReminderScreen() }) {
+                            Icon(
+                                Icons.Default.Notifications,
+                                contentDescription = "Reminders",
+                            )
+                        }
+                        IconButton(onClick = { showFilterSheet = true }) {
+                            Icon(Icons.Default.FilterList, contentDescription = "Filter")
+                        }
                     }
                 }
             )
@@ -202,51 +197,53 @@ fun LibraryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Üst sekmeler
-            TabRow(selectedTabIndex = state.selectedTab.ordinal) {
-                LibraryTab.entries.forEachIndexed { index, tab ->
-                    Tab(
-                        selected = index == state.selectedTab.ordinal,
-                        onClick = { viewModel.selectTab(tab) },
-                        text = { Text(tab.name) }
-                    )
-                }
-            }
-            // Filtre chipleri
-            if (!state.query.isNotBlank()) {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(items = KKLibrary.Status.all) { status ->
-                        val isSelected = status == state.selectedStatus
-                        val icon = when (status) {
-                            KKLibrary.Status.INPROGRESS -> Icons.Default.PlayArrow
-                            KKLibrary.Status.PLANNING -> Icons.Default.Schedule
-                            KKLibrary.Status.COMPLETED -> Icons.Default.Done
-                            KKLibrary.Status.ONHOLD -> Icons.Default.Pause
-                            KKLibrary.Status.DROPPED -> Icons.Default.Clear
-                            KKLibrary.Status.INTERESTED -> Icons.Default.Star
-                            KKLibrary.Status.IGNORED -> Icons.Default.Block
-                            else -> Icons.Default.Help
-                        }
-                        val displayLabel = when {
-                            status == KKLibrary.Status.INPROGRESS && state.selectedTab == LibraryTab.Animes -> "Watching"
-                            status == KKLibrary.Status.INPROGRESS && state.selectedTab == LibraryTab.Mangas -> "Reading"
-                            status == KKLibrary.Status.INPROGRESS && state.selectedTab == LibraryTab.Games -> "Playing"
-                            else -> status.stringValue
-                        }
-
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { viewModel.selectStatus(status) },
-                            label = { Text(displayLabel) },
-                            leadingIcon = {
-                                Icon(imageVector = icon, contentDescription = displayLabel)
-                            }
+            if (isLoggedIn) {
+                // Üst sekmeler
+                TabRow(selectedTabIndex = state.selectedTab.ordinal) {
+                    LibraryTab.entries.forEachIndexed { index, tab ->
+                        Tab(
+                            selected = index == state.selectedTab.ordinal,
+                            onClick = { viewModel.selectTab(tab) },
+                            text = { Text(tab.name) }
                         )
+                    }
+                }
+                // Filtre chipleri
+                if (!state.query.isNotBlank()) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(items = KKLibrary.Status.all) { status ->
+                            val isSelected = status == state.selectedStatus
+                            val icon = when (status) {
+                                KKLibrary.Status.INPROGRESS -> Icons.Default.PlayArrow
+                                KKLibrary.Status.PLANNING -> Icons.Default.Schedule
+                                KKLibrary.Status.COMPLETED -> Icons.Default.Done
+                                KKLibrary.Status.ONHOLD -> Icons.Default.Pause
+                                KKLibrary.Status.DROPPED -> Icons.Default.Clear
+                                KKLibrary.Status.INTERESTED -> Icons.Default.Star
+                                KKLibrary.Status.IGNORED -> Icons.Default.Block
+                                else -> Icons.Default.Help
+                            }
+                            val displayLabel = when {
+                                status == KKLibrary.Status.INPROGRESS && state.selectedTab == LibraryTab.Animes -> "Watching"
+                                status == KKLibrary.Status.INPROGRESS && state.selectedTab == LibraryTab.Mangas -> "Reading"
+                                status == KKLibrary.Status.INPROGRESS && state.selectedTab == LibraryTab.Games -> "Playing"
+                                else -> status.stringValue
+                            }
+
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { viewModel.selectStatus(status) },
+                                label = { Text(displayLabel) },
+                                leadingIcon = {
+                                    Icon(imageVector = icon, contentDescription = displayLabel)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -283,6 +280,9 @@ fun LibraryScreen(
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 20.dp)
                         )
+                        TextButton(onClick = { onNavigateToLoginScreen() }) {
+                            Text("Sign in")
+                        }
                     }
                 }
 

@@ -118,6 +118,9 @@ fun AppNavHost(
                 },
                 onNavigateToReminderScreen = {
                     navController.navigate(Screen.Reminder.route)
+                },
+                onNavigateToLoginScreen = {
+                    navController.navigate(Screen.Login.route)
                 }
             )
             //PlaceholderScreen(screenName = "Library")

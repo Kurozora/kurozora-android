@@ -37,6 +37,7 @@ import app.kurozora.ui.components.cards.EpisodeCard
 import app.kurozora.ui.components.cards.GameCard
 import app.kurozora.ui.components.cards.GenreCard
 import app.kurozora.ui.components.cards.LiteratureCard
+import app.kurozora.ui.components.cards.MediaBannerPager
 import app.kurozora.ui.components.cards.MediaCardViewMode
 import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.components.cards.RecapCard
@@ -131,81 +132,107 @@ fun ExploreScreen(
                             ?: emptyList()
                         val categoryItems = uiState.categoryItems[categoryId] ?: emptyMap()
 
-                        if (category.attributes.title != "Featured") {
+                        if (itemIdentities.isEmpty()) return@itemsIndexed
+
+                        // 🔥 FEATURED
+                        if (category.attributes.title == "Featured") {
+                            val shows = itemIdentities.mapNotNull { id ->
+                                val item = categoryItems[id]
+                                if (item == null) {
+                                    LaunchedEffect(id) {
+                                        viewModel.fetchItemDetail(categoryId, id, ItemType.Show)
+                                    }
+                                }
+                                item as? Show
+                            }
+
+                            MediaBannerPager(
+                                items = shows,
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                onClick = { show ->
+                                    onNavigateToItemDetail(show)
+                                },
+                                onStatusSelected = { show, status ->
+                                    viewModel.updateLibraryStatus(show.id, status, ItemType.Show)
+                                }
+                            )
+
+                        } else {
+                            // 🔹 NORMAL CATEGORIES
+
                             SectionHeader(
                                 title = category.attributes.title,
                                 subtitle = category.attributes.description ?: "",
                                 onSeeAllClick = { onNavigateToCategoryDetails(category) }
                             )
-                        }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                        ItemList(
-                            items = itemIdentities,
-                            viewMode = ItemListViewMode.Horizontal,
-                            itemContent = { itemId ->
-                                val item = categoryItems[itemId]
-                                val type = determineItemType(category, itemId)
+                            ItemList(
+                                items = itemIdentities,
+                                viewMode = ItemListViewMode.Horizontal,
+                                itemContent = { itemId ->
+                                    val item = categoryItems[itemId]
+                                    val type = determineItemType(category, itemId)
 
-                                LaunchedEffect(itemId) {
-                                    if (item == null && type != ItemType.Recap) {
-                                        viewModel.fetchItemDetail(categoryId, itemId, type)
+                                    LaunchedEffect(itemId) {
+                                        if (item == null && type != ItemType.Recap) {
+                                            viewModel.fetchItemDetail(categoryId, itemId, type)
+                                        }
+                                    }
+                                    val animeViewMode = when (category.attributes.title) {
+                                        "Upcoming Shows" -> MediaCardViewMode.Big
+                                        "Long Time Favorites" -> MediaCardViewMode.Detailed
+                                        else -> MediaCardViewMode.List
+                                    }
+
+                                    when (item) {
+                                        is Show -> AnimeCard(
+                                            show = item,
+                                            viewMode = animeViewMode,
+                                            onClick = { onNavigateToItemDetail(item) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Show)
+                                            }
+                                        )
+
+                                        is Literature -> LiteratureCard(
+                                            item,
+                                            onClick = { onNavigateToItemDetail(item) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Literature)
+                                            }
+                                        )
+
+                                        is Game -> GameCard(
+                                            game = item,
+                                            onClick = { onNavigateToItemDetail(item) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Game)
+                                            }
+                                        )
+
+                                        is Character -> CharacterCard(item, onClick = { onNavigateToItemDetail(item) })
+                                        is Person -> PersonCard(item, onClick = { onNavigateToItemDetail(item) })
+                                        is Genre -> GenreCard(item, onClick = { viewModel.changeGenre(item) })
+                                        is Theme -> ThemeCard(item, onClick = { viewModel.changeTheme(item) })
+                                        is Song -> SongCard(item, onClick = { onNavigateToItemDetail(item) })
+                                        is ShowSong -> SongCard(item.song, { onNavigateToItemDetail(item.song) })
+                                        is Episode -> EpisodeCard(
+                                            item,
+                                            onClick = { onNavigateToItemDetail(item) },
+                                            onMarkAsWatchedClick = {
+                                                viewModel.markAsWatchedEpisode(item.id, categoryId)
+                                            }
+                                        )
+
+                                        is Recap -> RecapCard(item, onClick = { /* ... */ })
+                                        null -> ItemPlaceholder(viewMode = MediaCardViewMode.List)
+                                        else -> Text(item.toString())
                                     }
                                 }
-                                val animeViewMode = when (category.attributes.title) {
-                                    "Featured" -> MediaCardViewMode.Big
-                                    "Upcoming Shows" -> MediaCardViewMode.Big
-                                    "Long Time Favorites" -> MediaCardViewMode.Detailed
-                                    else -> MediaCardViewMode.List
-                                }
-
-                                when (item) {
-                                    is Show -> AnimeCard(
-                                        show = item,
-                                        viewMode = animeViewMode,
-                                        onClick = { onNavigateToItemDetail(item) },
-                                        onStatusSelected = { newStatus ->
-                                            viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Show)
-                                        }
-                                    )
-
-                                    is Literature -> LiteratureCard(
-                                        item,
-                                        onClick = { onNavigateToItemDetail(item) },
-                                        onStatusSelected = { newStatus ->
-                                            viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Literature)
-                                        }
-                                    )
-
-                                    is Game -> GameCard(
-                                        game = item,
-                                        onClick = { onNavigateToItemDetail(item) },
-                                        onStatusSelected = { newStatus ->
-                                            viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Game)
-                                        }
-                                    )
-
-                                    is Character -> CharacterCard(item, onClick = { onNavigateToItemDetail(item) })
-                                    is Person -> PersonCard(item, onClick = { onNavigateToItemDetail(item) })
-                                    is Genre -> GenreCard(item, onClick = { viewModel.changeGenre(item) })
-                                    is Theme -> ThemeCard(item, onClick = { viewModel.changeTheme(item) })
-                                    is Song -> SongCard(item, onClick = { onNavigateToItemDetail(item) })
-                                    is ShowSong -> SongCard(item.song, { onNavigateToItemDetail(item.song) })
-                                    is Episode -> EpisodeCard(
-                                        item,
-                                        onClick = { onNavigateToItemDetail(item) },
-                                        onMarkAsWatchedClick = {
-                                            viewModel.markAsWatchedEpisode(item.id, categoryId)
-                                        }
-                                    )
-
-                                    is Recap -> RecapCard(item, onClick = { /* ... */ })
-                                    null -> ItemPlaceholder(viewMode = MediaCardViewMode.List)
-                                    else -> Text(item.toString())
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -240,12 +267,14 @@ fun ItemPlaceholder(viewMode: MediaCardViewMode = MediaCardViewMode.List) {
         MediaCardViewMode.Detailed -> 150.dp
         MediaCardViewMode.List -> 240.dp
         MediaCardViewMode.Compact -> 150.dp
+        MediaCardViewMode.Banner -> 300.dp
     }
     val height = when (viewMode) {
         MediaCardViewMode.Big -> 300.dp
         MediaCardViewMode.Detailed -> 220.dp
         MediaCardViewMode.List -> 160.dp
         MediaCardViewMode.Compact -> 150.dp
+        MediaCardViewMode.Banner -> 300.dp
     }
 
     Box(

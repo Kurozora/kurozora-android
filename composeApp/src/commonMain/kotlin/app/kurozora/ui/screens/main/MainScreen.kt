@@ -30,21 +30,21 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MainScreen(
     viewModel: MainViewModel = koinViewModel(),
 ) {
-    val accountManager: AccountManager = koinInject()
-    val settings = accountManager.getScopedSettings()
-    settings?.let { ThemeController.initFromSettings(it) }
-    val seenOnboarding by viewModel.seenOnboarding.collectAsState()
-
-    if (!seenOnboarding) {
-        // Onboarding ekranı
-        WelcomeScreen(
-            onGetStarted = { viewModel.markOnboardingSeen() }
-        )
-    } else {
-        // Normal ana ekran
-        MainContent()
-    }
-//    MainContent()
+//    val accountManager: AccountManager = koinInject()
+//    val settings = accountManager.getScopedSettings()
+//    settings?.let { ThemeController.initFromSettings(it) }
+//    val seenOnboarding by viewModel.seenOnboarding.collectAsState()
+//
+//    if (!seenOnboarding) {
+//        // Onboarding ekranı
+//        WelcomeScreen(
+//            onGetStarted = { viewModel.markOnboardingSeen() }
+//        )
+//    } else {
+//        // Normal ana ekran
+//        MainContent()
+//    }
+    MainContent()
 }
 
 @Composable

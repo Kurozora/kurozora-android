@@ -5,7 +5,7 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import app.kurozora.ui.screens.explore.ItemType
 import app.kurozora.ui.screens.list.ItemListScreen
 import kurozorakit.core.KurozoraKit
-import kurozorakit.data.enums.KKLibrary
+import kurozorakit.data.models.user.User
 import org.koin.compose.koinInject
 
 @Composable
@@ -38,3 +38,15 @@ fun ProfileAchievementsListScreen(
         onNavigateToItemDetail = onNavigateToItemDetail
     )
 }
+
+//fun User.getAchievements(): List<String> {
+//    return this.let { user ->
+//        val isStaff = user.attributes.isStaff
+//        val isPro = user.attributes.isPro
+//        val isVerified = user.attributes.isVerified
+//        val isDeveloper = user.attributes.isDeveloper
+//        val isSubscribed = user.attributes.isSubscribed
+//        val isEarlySupporter = user.attributes.isEarlySupporter
+//        listOf()
+//    }
+//}

@@ -75,15 +75,15 @@ fun ReminderScreen(
                 .padding(innerPadding)
         ) {
             // Üst sekmeler
-            TabRow(selectedTabIndex = state.selectedTab.ordinal) {
-                LibraryTab.entries.forEachIndexed { index, tab ->
-                    Tab(
-                        selected = index == state.selectedTab.ordinal,
-                        onClick = { viewModel.selectTab(tab) },
-                        text = { Text(tab.name) }
-                    )
-                }
-            }
+//            TabRow(selectedTabIndex = state.selectedTab.ordinal) {
+//                LibraryTab.entries.forEachIndexed { index, tab ->
+//                    Tab(
+//                        selected = index == state.selectedTab.ordinal,
+//                        onClick = { viewModel.selectTab(tab) },
+//                        text = { Text(tab.name) }
+//                    )
+//                }
+//            }
 
             when {
                 state.isLoading -> {

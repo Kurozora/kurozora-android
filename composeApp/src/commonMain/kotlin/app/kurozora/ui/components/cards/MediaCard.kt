@@ -1,5 +1,6 @@
 package app.kurozora.ui.components.cards
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -44,6 +47,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -51,12 +55,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import app.kurozora.ui.screens.explore.ItemPlaceholder
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kurozora.composeapp.generated.resources.Res
@@ -66,12 +74,12 @@ import kurozorakit.data.models.show.Show
 import org.jetbrains.compose.resources.decodeToImageBitmap
 
 enum class MediaCardViewMode {
-    List, Compact, Big, Detailed
+    List, Compact, Big, Detailed, Banner
 }
 
 @Composable
 fun MediaCard(
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     title: String?,
     topTitle: String,
     description: String?,
@@ -144,7 +152,7 @@ fun MediaCard(
 
                     Column(
                         modifier = Modifier
-                            .fillMaxHeight()
+                            .fillMaxSize()
                             .weight(1f)
                     ) {
                         if (topTitle.isNotEmpty()) {
@@ -394,6 +402,73 @@ fun MediaCard(
                 )
             }
         }
+        MediaCardViewMode.Banner -> {
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClick = onClick)
+            ) {
+
+                // 🔹 Banner image (NET)
+                KamelImage(
+                    resource = { asyncPainterResource(bannerUrl ?: posterUrl ?: "") },
+                    contentDescription = title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                    onFailure = {
+                        bannerPlaceholder?.decodeToImageBitmap()?.let { bitmap ->
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                )
+
+                // 🔹 Alt blur + gradient SADECE text arkasında
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    // Blur layer
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .graphicsLayer { alpha = 0.99f } // blur fix
+                            .blur(18.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Black.copy(alpha = 0.35f),
+                                        Color.Black.copy(alpha = 0.65f)
+                                    )
+                                )
+                            )
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(8.dp)
+                    ) {
+                        Text(
+                            text = title ?: "Unknown Title",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
+
     }
 }
 
@@ -404,8 +479,10 @@ fun AnimeCard(
     viewMode: MediaCardViewMode = MediaCardViewMode.List,
     onStatusSelected: (KKLibrary.Status) -> Unit,
     topTitle: String = "",
+    modifier: Modifier = Modifier,
 ) {
     MediaCard(
+        modifier = modifier,
         title = show.attributes.title,
         description = show.attributes.synopsis,
         topTitle = topTitle,
@@ -426,8 +503,10 @@ fun LiteratureCard(
     viewMode: MediaCardViewMode = MediaCardViewMode.List,
     onStatusSelected: (KKLibrary.Status) -> Unit,
     topTitle: String = "",
+    modifier: Modifier = Modifier,
 ) {
     MediaCard(
+        modifier =  modifier,
         title = lit.attributes.title,
         description = lit.attributes.synopsis,
         topTitle = topTitle,
@@ -590,4 +669,115 @@ fun LibraryStatusButton(
 }
 
 
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@Composable
+fun MediaBannerPager(
+    items: List<Show>,
+    modifier: Modifier = Modifier,
+    autoScrollDelay: Long = 4_000,
+    onClick: (Show) -> Unit,
+    onStatusSelected: (Show, KKLibrary.Status) -> Unit
+) {
+    if (items.isEmpty()) {
+        ItemPlaceholder(viewMode = MediaCardViewMode.Banner)
+        return
+    }
+
+    val pagerState = rememberPagerState { items.size }
+
+    // 🧠 Kullanıcı etkileşim state'leri
+    var isHovered by remember { mutableStateOf(false) }
+    var isUserDragging by remember { mutableStateOf(false) }
+
+    // 🔁 Auto scroll (PAUSE aware)
+    LaunchedEffect(
+        items.size,
+        isHovered,
+        isUserDragging
+    ) {
+        if (items.size <= 1) return@LaunchedEffect
+
+        while (true) {
+            kotlinx.coroutines.delay(autoScrollDelay)
+
+            // ⛔ pause conditions
+            if (isHovered || isUserDragging) continue
+
+            val nextPage = (pagerState.currentPage + 1) % items.size
+            pagerState.animateScrollToPage(nextPage)
+        }
+    }
+
+    Box(
+        modifier = modifier
+            // 🖱 Desktop hover
+            .pointerMoveFilter(
+                onEnter = {
+                    isHovered = true
+                    false
+                },
+                onExit = {
+                    isHovered = false
+                    false
+                }
+            )
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            pageSpacing = 16.dp,
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            modifier = Modifier
+                // 👆 User swipe detection
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            isUserDragging =
+                                event.changes.any { it.pressed }
+                        }
+                    }
+                }
+        ) { page ->
+            val show = items[page]
+
+            MediaCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = show.attributes.title,
+                description = show.attributes.synopsis,
+                topTitle = "Featured",
+                tagline = show.attributes.tagline ?: "",
+                posterUrl = show.attributes.poster?.url,
+                bannerUrl = show.attributes.banner?.url,
+                viewMode = MediaCardViewMode.Banner,
+                libraryStatus = show.attributes.library?.status,
+                onClick = { onClick(show) },
+                onStatusSelected = { onStatusSelected(show, it) }
+            )
+        }
+    }
+
+//    // 🔘 Indicator dots
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(top = 8.dp),
+//        horizontalArrangement = Arrangement.Center
+//    ) {
+//        repeat(items.size) { index ->
+//            Box(
+//                modifier = Modifier
+//                    .padding(4.dp)
+//                    .size(if (pagerState.currentPage == index) 8.dp else 6.dp)
+//                    .clip(MaterialTheme.shapes.small)
+//                    .background(
+//                        if (pagerState.currentPage == index)
+//                            MaterialTheme.colorScheme.primary
+//                        else
+//                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+//                    )
+//            )
+//        }
+//    }
+}
 

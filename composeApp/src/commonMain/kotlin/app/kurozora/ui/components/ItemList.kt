@@ -51,7 +51,7 @@ fun <T> ItemList(
     viewMode: ItemListViewMode,
     modifier: Modifier = Modifier,
     itemSpacing: Dp = 12.dp,
-    contentPadding: PaddingValues = PaddingValues(16.dp),
+    contentPadding: PaddingValues = PaddingValues(8.dp),
     itemContent: @Composable (T) -> Unit,
     onLoadMore: (() -> Unit)? = null,
     isLoadingMore: Boolean = false,
