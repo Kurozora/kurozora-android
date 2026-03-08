@@ -31,11 +31,12 @@ import kurozorakit.data.models.game.Game
 @Composable
 fun GameCard(
     game: Game,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onStatusSelected: (KKLibrary.Status) -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .width(300.dp)
             .height(140.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp)

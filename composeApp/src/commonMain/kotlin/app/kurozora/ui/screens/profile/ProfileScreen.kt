@@ -80,6 +80,7 @@ fun ProfileScreen(
     onNavigateToFavoriteGameList: (String) -> Unit,
     onNavigateToFollowersList: (String) -> Unit,
     onNavigateToFollowingsList: (String) -> Unit,
+    onNavigateToReviewList: (String) -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     var profilePlaceholder: ByteArray? by remember { mutableStateOf(null) }
@@ -89,13 +90,13 @@ fun ProfileScreen(
         profilePlaceholder = Res.readBytes("files/static/placeholders/user_profile.webp")
     }
     val state by viewModel.state.collectAsState()
-
+    val userDetail = state.user ?: user
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = user.attributes.username,
+                        text = userDetail.attributes.username,
                         color = Color.White
                     )
                 },
@@ -138,10 +139,10 @@ fun ProfileScreen(
                     KamelImage(
                         {
                             asyncPainterResource(
-                                user.attributes.banner?.url ?: "static/default_banner.png"
+                                userDetail.attributes.banner?.url ?: "static/default_banner.png"
                             )
                         },
-                        contentDescription = "${user.attributes.username} banner",
+                        contentDescription = "${userDetail.attributes.username} banner",
                         modifier = Modifier
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.primary),
@@ -170,8 +171,8 @@ fun ProfileScreen(
                             .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                     ) {
                         KamelImage(
-                            resource = { asyncPainterResource(user.attributes.profile?.url ?: "") },
-                            contentDescription = "${user.attributes.username} avatar",
+                            resource = { asyncPainterResource(userDetail.attributes.profile?.url ?: "") },
+                            contentDescription = "${userDetail.attributes.username} avatar",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                             onFailure = {
@@ -199,7 +200,7 @@ fun ProfileScreen(
                     // Başlangıçta user'daki değeri kullan
                     var followStatus by remember {
                         mutableStateOf(
-                            user.attributes.followStatus ?: state.followStatus
+                            userDetail.attributes.followStatus
                         )
                     }
                     // Eğer state.followStatus sonradan güncellenirse, bunu da takip et
@@ -243,7 +244,7 @@ fun ProfileScreen(
                         .padding(horizontal = 16.dp, vertical = 24.dp)
                 ) {
                     Text(
-                        text = user.attributes.username,
+                        text = userDetail.attributes.username,
                         color = Color.White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
@@ -252,7 +253,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = user.attributes.biography ?: "",
+                        text = userDetail.attributes.biography ?: "",
                         color = Color(0xFFD3D3D3),
                         fontSize = 14.sp,
                         lineHeight = 20.sp
@@ -261,15 +262,15 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         StatItem(
                             "Achievements", user.relationships?.achievements?.data?.size
                                 ?: 0, onClick = { })
-                        StatItem("Following", user.attributes.followingCount, onClick = { onNavigateToFollowingsList(user.id) })
-                        StatItem("Followers", user.attributes.followerCount, onClick = { onNavigateToFollowersList(user.id) })
-                        StatItem("Reviews", 12, onClick = { })
+                        StatItem("Following", userDetail.attributes.followingCount, onClick = { onNavigateToFollowingsList(user.id) })
+                        StatItem("Followers", userDetail.attributes.followerCount, onClick = { onNavigateToFollowersList(user.id) })
+                        StatItem("Reviews", userDetail.attributes.ratingsCount, onClick = { onNavigateToReviewList(user.id) })
                     }
                 }
             }

@@ -93,6 +93,7 @@ fun ShowDetailScreen(
     onNavigateToRelatedShowList: (String) -> Unit,
     onNavigateToRelatedLiteratureList: (String) -> Unit,
     onNavigateToRelatedGameList: (String) -> Unit,
+    onNavigateToReviewList: (String) -> Unit,
     viewModel: ShowDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -136,8 +137,12 @@ fun ShowDetailScreen(
                             viewModel.updateReminderStatus(show.id)
                         },
                         onRateSubmit = { rating, review ->
-                            viewModel.postReview(it.id,rating, review)
-                        }
+                            viewModel.postReview(it.id, rating, review)
+                        },
+                        windowWidth = windowWidth,
+                        onNavigateToReviewList = { id ->
+                            onNavigateToReviewList(id)
+                        },
                     )
                 }
             }
@@ -454,14 +459,14 @@ fun Show?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>)
                 show.attributes.nextBroadcastAt?.let {
                     InfoCard(
                         title = "Broadcast",
-                        value = it.toReadableDate(),
+                        value = it.toString(),
                         subtitle = ""
                     )
                 },
                 show.attributes.airTime?.let {
                     InfoCard(
                         title = "Aired",
-                        value = it.toReadableDate(),
+                        value = it,
                         subtitle = ""
                     )
                 },

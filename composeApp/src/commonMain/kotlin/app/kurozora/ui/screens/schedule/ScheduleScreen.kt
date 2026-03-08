@@ -130,7 +130,7 @@ fun ScheduleScreen(
 //                                            .format(DateTimeFormatter.ofPattern("HH:mm"))
                                         AnimeCard(
                                             show,
-                                            topTitle = (show.attributes.nextBroadcastAt?.toHourMinute()
+                                            topTitle = (show.attributes.nextBroadcastAt?.toString()
                                                 ?: "—"),
                                             onClick = { onNavigateToItemDetail(show) },
                                             onStatusSelected = { newStatus ->

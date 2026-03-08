@@ -74,6 +74,8 @@ fun DetailContent(
     onRemindClick: () -> Unit = {},
     onFavoriteClick: () -> Unit = {},
     onRateSubmit: (Int, String) -> Unit = { _, _ -> },
+    onNavigateToReviewList: (String) -> Unit = { _-> },
+    windowWidth: WindowWidthSizeClass,
 ) {
     var showRatingModal by remember { mutableStateOf(false) }
     var rating by remember { mutableIntStateOf(detail.givenRating) }
@@ -347,7 +349,7 @@ fun DetailContent(
 
         Spacer(Modifier.height(12.dp))
         // Stats - yatay kaydırılabilir
-        DetailStatsRow(detail.stats)
+        DetailStatsRow(detail.stats, windowWidth)
 //        LazyRow(
 //            modifier = Modifier.fillMaxWidth(),
 //            contentPadding = PaddingValues(horizontal = 16.dp)
@@ -372,7 +374,7 @@ fun DetailContent(
         }
 
         Spacer(Modifier.height(16.dp))
-        SectionHeader(title = "Ratings & Reviews", onSeeAllClick = {  })
+        SectionHeader(title = "Ratings & Reviews", onSeeAllClick = { onNavigateToReviewList(detail.id) })
 
         detail.mediaStat?.let {
             Column {
@@ -637,52 +639,91 @@ fun labelIcon(label: String) = when {
 }
 
 @Composable
-fun DetailStatsRow(stats: Map<String, String>) {
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        items(stats.toList()) { (label, value) ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.widthIn(min = 100.dp).fillMaxWidth()
+fun DetailStatsRow(
+    stats: Map<String, String>,
+    windowSizeClass: WindowWidthSizeClass
+) {
+
+    when (windowSizeClass) {
+
+        WindowWidthSizeClass.COMPACT, WindowWidthSizeClass.MEDIUM -> {
+
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Label
-                Text(
-                    text = label.uppercase(),
-                    //fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                    color = Color.White
-                )
 
-                Spacer(Modifier.height(2.dp))
+                items(stats.toList()) { (label, value) ->
 
-                // Icon
-                labelIcon(label)?.let { icon ->
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        tint = Color.White,
-                        modifier = Modifier.size(15.dp)
+                    StatItem(
+                        label = label,
+                        value = value,
+                        modifier = Modifier.widthIn(min = 100.dp)
                     )
                 }
-
-                Spacer(Modifier.height(2.dp))
-
-                // Value
-                Text(
-                    text = value,
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
-
-            if (label != stats.keys.last()) {
-                VerticalDivider(modifier = Modifier.fillMaxHeight(), thickness = 4.dp)
             }
         }
+
+        WindowWidthSizeClass.EXPANDED -> {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+
+                stats.toList().forEach { (label, value) ->
+
+                    StatItem(
+                        label = label,
+                        value = value,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+
+        Text(
+            text = label.uppercase(),
+            fontSize = 11.sp,
+            color = Color.White
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        labelIcon(label)?.let {
+
+            Icon(
+                imageVector = it,
+                contentDescription = label,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = value,
+            fontSize = 12.sp,
+            color = Color.White.copy(alpha = 0.7f)
+        )
     }
 }
 

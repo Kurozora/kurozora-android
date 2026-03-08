@@ -1,4 +1,4 @@
-package app.kurozora.ui.screens.list.profile
+package app.kurozora.ui.screens.list.show
 
 import androidx.compose.runtime.Composable
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -6,13 +6,12 @@ import app.kurozora.ui.screens.explore.ItemType
 import app.kurozora.ui.screens.list.ItemListScreen
 import app.kurozora.ui.screens.list.ItemListViewModel
 import kurozorakit.core.KurozoraKit
-import kurozorakit.data.enums.KKLibrary
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun ProfileReviewListScreen(
-    userId: String,
+fun ShowReviewListScreen(
+    showId: String,
     onNavigateBack: () -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
     windowWidth: WindowWidthSizeClass,
@@ -22,16 +21,17 @@ fun ProfileReviewListScreen(
 
     ItemListScreen(
         title = "Reviews",
-        preloadedItems = null,
         itemType = ItemType.Review,
+        preloadedItems = null,
         fetcher = { nextUrl, limit ->
             var data: List<String> = emptyList()
             var next: String? = null
-            val map: MutableMap<String, Any> = mutableMapOf()
+            val map: Map<String, Any> = mutableMapOf()
 
-            kit.auth().getUserReviews(userId, nextUrl).onSuccess { res ->
-                map.putAll(res.data.associateBy { it.id })
-                data = map.keys.toList()
+            kit.show().getShowReviews(showId, nextUrl).onSuccess { res ->
+                val m = res.data.associateBy { it.id } // id -> Review
+                (map as MutableMap).putAll(m)
+                data = m.keys.toList()
                 next = res.next
             }
 

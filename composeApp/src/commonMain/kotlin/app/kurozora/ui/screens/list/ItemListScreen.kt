@@ -39,6 +39,7 @@ import app.kurozora.ui.components.cards.GenreCard
 import app.kurozora.ui.components.cards.LiteratureCard
 import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.components.cards.RecapCard
+import app.kurozora.ui.components.cards.ReviewCard
 import app.kurozora.ui.components.cards.SeasonCard
 import app.kurozora.ui.components.cards.SongCard
 import app.kurozora.ui.components.cards.StudioCard
@@ -55,6 +56,7 @@ import kurozorakit.data.models.genre.Genre
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.person.Person
 import kurozorakit.data.models.recap.Recap
+import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.show.cast.Cast
@@ -161,6 +163,28 @@ fun ItemListScreen(
                     else -> columnCount
                 }
 
+                // additional data
+                item {
+                    when (itemType) {
+                        ItemType.Show -> {  }
+                        ItemType.Game -> {  }
+                        ItemType.Literature -> {  }
+                        ItemType.Character -> {  }
+                        ItemType.Episode -> {  }
+                        ItemType.Genre -> {  }
+                        ItemType.Theme -> {  }
+                        ItemType.Song -> {  }
+                        ItemType.Person -> {  }
+                        ItemType.Recap -> {  }
+                        ItemType.Studio -> {  }
+                        ItemType.Season -> {  }
+                        ItemType.Cast -> {  }
+                        ItemType.User -> {  }
+                        ItemType.Staff -> {  }
+                        ItemType.Review -> {  }
+                    }
+                }
+                
                 item {
                     ItemList(
                         items = state.itemIds,
@@ -187,15 +211,23 @@ fun ItemListScreen(
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Literature -> (item as? Literature)?.let {
-                                        LiteratureCard(it, onClick = { onNavigateToItemDetail(it) }, onStatusSelected = { newStatus ->
-                                            viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Literature)
-                                        })
+                                        LiteratureCard(it,
+                                            onClick = { onNavigateToItemDetail(it) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Literature)
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Game -> (item as? Game)?.let {
-                                        GameCard(it, onClick = {}, onStatusSelected = { newStatus ->
-                                            viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Game)
-                                        })
+                                        GameCard(it,
+                                            onClick = { onNavigateToItemDetail(it) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Game)
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Character -> (item as? Character)?.let {
@@ -207,11 +239,11 @@ fun ItemListScreen(
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Genre -> (item as? Genre)?.let {
-                                        GenreCard(it, onClick = {}, detailed = true)
+                                        GenreCard(it, onClick = { onNavigateToItemDetail(it) })
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Theme -> (item as? Theme)?.let {
-                                        ThemeCard(it, onClick = {})
+                                        ThemeCard(it, onClick = { onNavigateToItemDetail(it) })
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Song -> (item as? Song)?.let {
@@ -219,9 +251,13 @@ fun ItemListScreen(
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Episode -> (item as? Episode)?.let {
-                                        EpisodeCard(it, onClick = { onNavigateToItemDetail(it) }, {
-                                            viewModel.markEpisodeAsWatched(it.id)
-                                        })
+                                        EpisodeCard(it,
+                                            onClick = { onNavigateToItemDetail(it) },
+                                            onMarkAsWatchedClick = {
+                                                viewModel.markEpisodeAsWatched(it.id)
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Recap -> (item as? Recap)?.let {
@@ -252,7 +288,9 @@ fun ItemListScreen(
                                         PersonCard(person, subTitle = role, onClick = { onNavigateToItemDetail(person) })
                                     } ?: ItemPlaceholder()
 
-                                    ItemType.Review -> TODO()
+                                    ItemType.Review -> (item as? Review)?.let { review ->
+                                        ReviewCard(review, badgeIcons = listOf(), modifier = Modifier.fillMaxWidth())
+                                    } ?: ItemPlaceholder()
                                 }
                             }
                         }

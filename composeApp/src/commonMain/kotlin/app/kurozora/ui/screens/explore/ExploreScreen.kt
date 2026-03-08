@@ -1,10 +1,14 @@
 package app.kurozora.ui.screens.explore
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,7 +31,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
 import app.kurozora.ui.components.ItemList
 import app.kurozora.ui.components.ItemListViewMode
 import app.kurozora.ui.components.SectionHeader
@@ -43,6 +51,9 @@ import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.components.cards.RecapCard
 import app.kurozora.ui.components.cards.SongCard
 import app.kurozora.ui.components.cards.ThemeCard
+import app.kurozora.ui.components.cards.parseColor
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import kurozorakit.data.models.character.Character
 import kurozorakit.data.models.episode.Episode
 import kurozorakit.data.models.explore.ExploreCategory
@@ -62,16 +73,57 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ExploreScreen(
     isLoggedIn: Boolean,
     viewModel: ExploreViewModel = koinViewModel(),
+    windowWidth: WindowWidthSizeClass,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToCategoryDetails: (ExploreCategory) -> Unit,
     onNavigateToSchedule: () -> Unit,
+    genre: Genre? = null,
+    theme: Theme? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        if (genre != null) {
+            viewModel.changeGenre(genre = genre)
+        }
+        if (theme != null) {
+            viewModel.changeTheme(theme = theme)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Explore") },
+                title = {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        KamelImage(
+                            resource = {
+                                asyncPainterResource(
+                                    (uiState.genre?.attributes?.symbol?.url ?: uiState.theme?.attributes?.symbol?.url).toString()
+                                )
+                            },
+                            contentDescription = "",
+                            modifier = Modifier.size(30.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Text("Explore", modifier = Modifier.clickable{ viewModel.fetchExplore() })
+                        Text(
+                            text = uiState.genre?.attributes?.name
+                                ?: uiState.theme?.attributes?.name
+                                ?: "",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        parseColor((uiState.genre?.attributes?.backgroundColor2 ?: uiState.theme?.attributes?.backgroundColor2 ?: "#FFFFFF")),
+                                        parseColor((uiState.genre?.attributes?.backgroundColor1 ?: uiState.theme?.attributes?.backgroundColor1 ?: "#FFFFFF")),
+                                    )
+                                )
+                            )
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { onNavigateToSchedule() }) {
                         Icon(
@@ -116,10 +168,22 @@ fun ExploreScreen(
                 ) {
                     item {
                         if (uiState.genre != null) {
-                            GenreCard(genre = uiState.genre!!)
+                            GenreCard(
+                                genre = uiState.genre!!,
+                                detailed = true,
+                                windowWidth = windowWidth,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(
+                                    when (windowWidth) {
+                                        WindowWidthSizeClass.COMPACT -> 3f / 4f
+                                        else -> 5f / 1f
+                                    }
+                                )
+                            )
                         }
                         if (uiState.theme != null) {
-                            ThemeCard(theme = uiState.theme!!)
+                            ThemeCard(theme = uiState.theme!!, detailed = true)
                         }
                     }
 

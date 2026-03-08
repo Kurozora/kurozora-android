@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kurozora.composeapp.generated.resources.Res
@@ -44,9 +47,11 @@ fun parseColor(hex: String): Color {
 fun GenreCard(
     genre: Genre,
     detailed: Boolean = false,
+    windowWidth: WindowWidthSizeClass = WindowWidthSizeClass.COMPACT,
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+
     if (!detailed) {
         DefaultGenreCard(
             genre = genre,
@@ -56,8 +61,6 @@ fun GenreCard(
         return
     }
 
-    // ================= DETAILED UI =================
-
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(
             parseColor(genre.attributes.backgroundColor2),
@@ -65,80 +68,123 @@ fun GenreCard(
         )
     )
 
-    var patternPlaceholder by remember { mutableStateOf<ByteArray?>(null) }
-
-    LaunchedEffect(Unit) {
-        patternPlaceholder =
-            Res.readBytes("files/static/patterns/genre_pattern.svg")
-    }
+    val isLarge = windowWidth != WindowWidthSizeClass.COMPACT
 
     Card(
-        onClick = { onClick?.invoke() },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = modifier
-            .width(300.dp)
-            .aspectRatio(16f / 9f)
+            .fillMaxSize()
+            .padding(12.dp)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
 
-            /* -------------------- ÜST ALAN -------------------- */
-            Box(
-                modifier = Modifier
-                    .weight(0.6f)
-                    .fillMaxWidth()
-                    .background(backgroundGradient),
-                contentAlignment = Alignment.Center
-            ) {
+        if (!isLarge) {
 
-                // Pattern arkaplan
-//                patternPlaceholder?.let {
-//                    Image(
-//                        bitmap = it.decodeToImageBitmap(),
-//                        contentDescription = null,
-//                        modifier = Modifier.fillMaxSize(),
-//                        contentScale = ContentScale.Crop,
-//                        alpha = 0.25f
-//                    )
-//                }
+            /* -------------------------------------------------- */
+            /* COMPACT UI (PHONE)                                */
+            /* -------------------------------------------------- */
 
-                // Genre icon (ortada)
-                KamelImage(
-                    resource = {
-                        asyncPainterResource(
-                            genre.attributes.symbol?.url.toString()
-                        )
-                    },
-                    contentDescription = genre.attributes.name,
-                    modifier = Modifier.size(110.dp),
-                    contentScale = ContentScale.Fit
-                )
+            Column(Modifier.fillMaxSize()) {
+
+                Box(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .fillMaxWidth()
+                        .background(backgroundGradient),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    KamelImage(
+                        resource = {
+                            asyncPainterResource(
+                                genre.attributes.symbol?.url.toString()
+                            )
+                        },
+                        contentDescription = genre.attributes.name,
+                        modifier = Modifier.size(110.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.35f))
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+
+                    Text(
+                        text = genre.attributes.name.uppercase(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        text = genre.attributes.description.orEmpty(),
+                        color = Color.White.copy(alpha = 0.85f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 3
+                    )
+                }
             }
 
-            /* -------------------- ALT ALAN -------------------- */
-            Column(
+        } else {
+
+            /* -------------------------------------------------- */
+            /* TABLET / DESKTOP UI                               */
+            /* -------------------------------------------------- */
+
+            Row(
                 modifier = Modifier
-                    .weight(0.4f)
-                    .fillMaxWidth()
-                    .background(
-                        Color.Black.copy(alpha = 0.35f)
-                    )
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.Center
+                    .fillMaxSize()
+                    .background(backgroundGradient),
+                verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Text(
-                    text = genre.attributes.name.uppercase(),
-                    color = Color.White,
-                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium
-                )
+                /* -------- ICON AREA -------- */
 
-                Text(
-                    text = genre.attributes.description.orEmpty(),
-                    color = Color.White.copy(alpha = 0.85f),
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                    maxLines = 3
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(0.15f).padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    KamelImage(
+                        resource = {
+                            asyncPainterResource(
+                                genre.attributes.symbol?.url.toString()
+                            )
+                        },
+                        contentDescription = genre.attributes.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                /* -------- TEXT AREA -------- */
+
+                Column(
+                    modifier = Modifier
+                        .weight(0.85f)
+                        .padding(start = 8.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+
+                    Text(
+                        text = genre.attributes.name.uppercase(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    Text(
+                        text = genre.attributes.description.orEmpty(),
+                        color = Color.White.copy(alpha = 0.9f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 4
+                    )
+                }
             }
         }
     }
@@ -171,6 +217,9 @@ fun DefaultGenreCard(
         onClick = { onClick?.invoke() },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = Color.White.copy(alpha = 0.15f)
+//        ),
         modifier = modifier
             .width(300.dp)
             .aspectRatio(16f / 9f)

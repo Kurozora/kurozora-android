@@ -40,6 +40,7 @@ import app.kurozora.ui.screens.list.profile.*
 import app.kurozora.ui.screens.list.show.*
 import app.kurozora.ui.screens.list.song.SongAnimeListScreen
 import app.kurozora.ui.screens.list.song.SongGameListScreen
+import app.kurozora.ui.screens.list.song.SongReviewListScreen
 import app.kurozora.ui.screens.list.studio.*
 import app.kurozora.ui.screens.profile.ProfileScreen
 import app.kurozora.ui.screens.profile.settings.SettingsScreen
@@ -52,12 +53,14 @@ import kurozorakit.data.models.character.Character
 import kurozorakit.data.models.episode.Episode
 import kurozorakit.data.models.explore.ExploreCategory
 import kurozorakit.data.models.game.Game
+import kurozorakit.data.models.genre.Genre
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.person.Person
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.song.Song
 import kurozorakit.data.models.studio.Studio
+import kurozorakit.data.models.theme.Theme
 import kurozorakit.data.models.user.User
 import org.koin.core.context.GlobalContext
 
@@ -73,6 +76,8 @@ fun NavController.navigateToItemDetail(item: Any) {
         is Song -> navigate(Screen.SongDetail.createRoute(item))
         is Season -> navigate(Screen.SeasonDetail.createRoute(item))
         is User -> navigate(Screen.Profile.createRoute(item))
+        is Genre -> navigate(Screen.Explore.createRoute(genre = item))
+        is Theme -> navigate(Screen.Explore.createRoute(theme = item))
     }
 }
 
@@ -90,10 +95,24 @@ fun AppNavHost(
         val accountManager = GlobalContext.get().get<AccountManager>()
         val isLoggedIn = accountManager.activeAccount.value != null
         // Explore Screen
-        composable(Screen.Explore.route) {
-            //PlaceholderScreen(screenName = "Explore")
+        composable(
+            route = "${Screen.Explore.route}?genre={genre}&theme={theme}",
+            arguments = listOf(
+                navArgument("genre") { type = NavType.StringType; nullable = true },
+                navArgument("theme") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val genreEncoded = NavType.StringType.get(backStackEntry.arguments!!, "genre")
+            val genreJson = genreEncoded?.decodeBase64String()
+            val genreItem = genreJson?.let { Json.decodeFromString<Genre>(it) }
+
+            val themeEncoded = NavType.StringType.get(backStackEntry.arguments!!, "theme")
+            val themeJson = themeEncoded?.decodeBase64String()
+            val themeItem = themeJson?.let { Json.decodeFromString<Theme>(it) }
+
             ExploreScreen(
                 isLoggedIn = isLoggedIn,
+                windowWidth = windowSize.windowWidthSizeClass,
                 onNavigateToItemDetail = { item ->
                     navController.navigateToItemDetail(item)
                 },
@@ -103,6 +122,8 @@ fun AppNavHost(
                 onNavigateToSchedule = {
                     navController.navigate(Screen.Schedule.route)
                 },
+                genre = genreItem,
+                theme = themeItem,
             )
         }
         // Library Screen
@@ -243,7 +264,10 @@ fun AppNavHost(
                     },
                     onNavigateToSettings = {
                         navController.navigate("settings")
-                    }
+                    },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.ProfileReviewList.createRoute(id))
+                    },
                 )
             }
         }
@@ -324,6 +348,9 @@ fun AppNavHost(
                     onNavigateToRelatedGameList = { id ->
                         navController.navigate(Screen.ShowRelatedGameList.createRoute(id))
                     },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.ShowReviewList.createRoute(id))
+                    },
                 )
             }
         }
@@ -373,6 +400,9 @@ fun AppNavHost(
                     },
                     onNavigateToRelatedGameList = { id ->
                         navController.navigate(Screen.LiteratureRelatedGameList.createRoute(id))
+                    },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.LiteratureReviewList.createRoute(id))
                     },
                 )
             }
@@ -424,6 +454,9 @@ fun AppNavHost(
                     onNavigateToRelatedGameList = { id ->
                         navController.navigate(Screen.GameRelatedGameList.createRoute(id))
                     },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.GameReviewList.createRoute(id))
+                    },
                 )
             }
         }
@@ -458,6 +491,9 @@ fun AppNavHost(
                     onNavigateToPeopleList = { id ->
                         navController.navigate(Screen.CharacterPeopleList.createRoute(id))
                     },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.CharacterReviewList.createRoute(id))
+                    },
                 )
             }
         }
@@ -479,6 +515,9 @@ fun AppNavHost(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToItemDetail = { item ->
                         navController.navigateToItemDetail(item)
+                    },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.EpisodeReviewList.createRoute(id))
                     },
                 )
             }
@@ -514,6 +553,9 @@ fun AppNavHost(
                     onNavigateToCharacterList = { id ->
                         navController.navigate(Screen.PersonCharacterList.createRoute(id))
                     },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.PersonReviewList.createRoute(id))
+                    },
                 )
             }
         }
@@ -545,6 +587,9 @@ fun AppNavHost(
                     onNavigateToGameList = { id ->
                         navController.navigate(Screen.StudioGameList.createRoute(id))
                     },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.StudioReviewList.createRoute(id))
+                    },
                 )
             }
         }
@@ -572,6 +617,9 @@ fun AppNavHost(
                     },
                     onNavigateToGameList = { id ->
                         navController.navigate(Screen.SongGameList.createRoute(id))
+                    },
+                    onNavigateToReviewList = { id ->
+                        navController.navigate(Screen.SongReviewList.createRoute(id))
                     },
                 )
             }
@@ -773,6 +821,23 @@ fun AppNavHost(
                 },
             )
         }
+        // ShowReviewList
+        composable(
+            route = "${Screen.ShowReviewList.route}?showId={showId}",
+            arguments = listOf(
+                navArgument("showId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val showId = NavType.StringType.get(backStackEntry.arguments!!, "showId")
+            ShowReviewListScreen(
+                showId = showId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
         // LiteraturePeopleList
         composable(
             route = "${Screen.LiteraturePeopleList.route}?litId={litId}",
@@ -919,6 +984,23 @@ fun AppNavHost(
             val litId = NavType.StringType.get(backStackEntry.arguments!!, "litId")
             LiteratureRelatedGameListScreen(
                 litId = litId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
+        // LiteratureReviewList
+        composable(
+            route = "${Screen.LiteratureReviewList.route}?literatureId={literatureId}",
+            arguments = listOf(
+                navArgument("literatureId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val literatureId = NavType.StringType.get(backStackEntry.arguments!!, "literatureId")
+            LiteratureReviewListScreen(
+                literatureId = literatureId.orEmpty(),
                 onNavigateBack = { navController.popBackStack() },
                 windowWidth = windowSize.windowWidthSizeClass,
                 onNavigateToItemDetail = { item ->
@@ -1079,6 +1161,23 @@ fun AppNavHost(
                 },
             )
         }
+        // GameReviewList
+        composable(
+            route = "${Screen.GameReviewList.route}?gameId={gameId}",
+            arguments = listOf(
+                navArgument("gameId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val gameId = NavType.StringType.get(backStackEntry.arguments!!, "gameId")
+            GameReviewListScreen(
+                gameId = gameId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
         // ProfileAnimeLibraryList
         composable(
             route = "${Screen.ProfileAnimeLibraryList.route}?userId={userId}",
@@ -1214,6 +1313,23 @@ fun AppNavHost(
                 },
             )
         }
+        // ProfileReviewList
+        composable(
+            route = "${Screen.ProfileReviewList.route}?userId={userId}",
+            arguments = listOf(
+                navArgument("userId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val userId = NavType.StringType.get(backStackEntry.arguments!!, "userId")
+            ProfileReviewListScreen(
+                userId = userId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
 
         // CharacterAnimeList
         composable(
@@ -1286,7 +1402,23 @@ fun AppNavHost(
                 },
             )
         }
-
+        // CharacterReviewList
+        composable(
+            route = "${Screen.CharacterReviewList.route}?characterId={characterId}",
+            arguments = listOf(
+                navArgument("characterId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val characterId = NavType.StringType.get(backStackEntry.arguments!!, "characterId")
+            CharacterReviewListScreen(
+                characterId = characterId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
         // PersonAnimeList
         composable(
             route = "${Screen.PersonAnimeList.route}?personId={personId}",
@@ -1358,7 +1490,23 @@ fun AppNavHost(
                 },
             )
         }
-
+        // PersonReviewList
+        composable(
+            route = "${Screen.PersonReviewList.route}?personId={personId}",
+            arguments = listOf(
+                navArgument("personId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val personId = NavType.StringType.get(backStackEntry.arguments!!, "personId")
+            PersonReviewListScreen(
+                personId = personId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
         // SongAnimeList
         composable(
             route = "${Screen.SongAnimeList.route}?songId={songId}",
@@ -1394,7 +1542,23 @@ fun AppNavHost(
                 },
             )
         }
-
+        // SongReviewList
+        composable(
+            route = "${Screen.SongReviewList.route}?songId={songId}",
+            arguments = listOf(
+                navArgument("songId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val songId = NavType.StringType.get(backStackEntry.arguments!!, "songId")
+            SongReviewListScreen(
+                songId = songId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
         // StudioAnimeList
         composable(
             route = "${Screen.StudioAnimeList.route}?studioId={studioId}",
@@ -1412,7 +1576,23 @@ fun AppNavHost(
                 },
             )
         }
-
+        // StudioReviewList
+        composable(
+            route = "${Screen.StudioReviewList.route}?studioId={studioId}",
+            arguments = listOf(
+                navArgument("studioId") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val studioId = NavType.StringType.get(backStackEntry.arguments!!, "studioId")
+            StudioReviewListScreen(
+                studioId = studioId.orEmpty(),
+                onNavigateBack = { navController.popBackStack() },
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
         // StudioMangaList
         composable(
             route = "${Screen.StudioMangaList.route}?studioId={studioId}",

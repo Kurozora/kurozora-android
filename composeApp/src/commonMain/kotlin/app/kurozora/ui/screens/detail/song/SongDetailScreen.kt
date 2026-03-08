@@ -36,6 +36,7 @@ fun SongDetailScreen(
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToAnimeList: (String) -> Unit,
     onNavigateToGameList: (String) -> Unit,
+    onNavigateToReviewList: (String) -> Unit,
     viewModel: SongDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -69,6 +70,10 @@ fun SongDetailScreen(
                         },
                         onRateSubmit = { rating, review ->
                             viewModel.postReview(it.id,rating, review)
+                        },
+                        windowWidth = windowWidth,
+                        onNavigateToReviewList = { id ->
+                            onNavigateToReviewList(id)
                         },
                     )
                 }

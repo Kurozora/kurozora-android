@@ -43,6 +43,7 @@ fun EpisodeDetailScreen(
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
+    onNavigateToReviewList: (String) -> Unit,
     viewModel: EpisodeDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -88,6 +89,10 @@ fun EpisodeDetailScreen(
                             onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) },
                             onRateSubmit = { rating, review ->
                                 viewModel.postReview(it.id,rating, review)
+                            },
+                            windowWidth = windowWidth,
+                            onNavigateToReviewList = { id ->
+                                onNavigateToReviewList(id)
                             },
                         ) }
                 }
@@ -138,7 +143,7 @@ fun EpisodeDetailScreen(
             ) {
                 item {
                     episode.toDetailData(windowWidth, state.reviews)?.let {
-                        DetailContent(it)
+                        DetailContent(it, windowWidth = windowWidth,)
                     }
                 }
 

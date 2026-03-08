@@ -39,6 +39,7 @@ fun PersonDetailScreen(
     onNavigateToMangaList: (String) -> Unit,
     onNavigateToGameList: (String) -> Unit,
     onNavigateToCharacterList: (String) -> Unit,
+    onNavigateToReviewList: (String) -> Unit,
     viewModel: PersonDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -72,6 +73,10 @@ fun PersonDetailScreen(
                         },
                         onRateSubmit = { rating, review ->
                             viewModel.postReview(it.id,rating, review)
+                        },
+                        windowWidth = windowWidth,
+                        onNavigateToReviewList = { id ->
+                            onNavigateToReviewList(id)
                         },
                     )
                 }

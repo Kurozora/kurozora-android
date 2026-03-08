@@ -48,6 +48,7 @@ fun LiteratureDetailScreen(
     onNavigateToRelatedShowList: (String) -> Unit,
     onNavigateToRelatedLiteratureList: (String) -> Unit,
     onNavigateToRelatedGameList: (String) -> Unit,
+    onNavigateToReviewList: (String) -> Unit,
     viewModel: LiteratureDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -92,7 +93,11 @@ fun LiteratureDetailScreen(
                         },
                         onRateSubmit = { rating, review ->
                             viewModel.postReview(it.id,rating, review)
-                        }
+                        },
+                        windowWidth = windowWidth,
+                        onNavigateToReviewList = { id ->
+                            onNavigateToReviewList(id)
+                        },
                     )
                 }
             }

@@ -20,12 +20,14 @@ import kurozorakit.data.models.character.Character
 import kurozorakit.data.models.episode.Episode
 import kurozorakit.data.models.explore.ExploreCategory
 import kurozorakit.data.models.game.Game
+import kurozorakit.data.models.genre.Genre
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.person.Person
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.song.Song
 import kurozorakit.data.models.studio.Studio
+import kurozorakit.data.models.theme.Theme
 import kurozorakit.data.models.user.User
 
 sealed class Screen(
@@ -34,7 +36,36 @@ sealed class Screen(
     val selectedIcon: ImageVector? = null,
     val unselectedIcon: ImageVector? = null,
 ) {
-    object Explore : Screen("explore", "Explore", Icons.Filled.Explore, Icons.Outlined.Explore)
+    object Explore : Screen(
+        "explore",
+        "Explore",
+        Icons.Filled.Explore,
+        Icons.Outlined.Explore
+    ) {
+        fun createRoute(
+            genre: Genre? = null,
+            theme: Theme? = null
+        ): String {
+            val params = mutableListOf<String>()
+
+            genre?.let {
+                val json = Json.encodeToString(it)
+                val encoded = json.encodeBase64()
+                params.add("genre=$encoded")
+            }
+            theme?.let {
+                val json = Json.encodeToString(it)
+                val encoded = json.encodeBase64()
+                params.add("theme=$encoded")
+            }
+
+            return if (params.isEmpty()) {
+                route
+            } else {
+                "$route?${params.joinToString("&")}"
+            }
+        }
+    }
     object Library : Screen("library", "Library", Icons.AutoMirrored.Filled.LibraryBooks, Icons.AutoMirrored.Outlined.LibraryBooks)
     object Search : Screen("search", "Search", Icons.Filled.Search, Icons.Outlined.Search)
     object Feed : Screen("feed", "Feed", Icons.Filled.DynamicFeed, Icons.Outlined.DynamicFeed)
@@ -184,6 +215,60 @@ sealed class Screen(
     object ShowRelatedGameList : Screen("showRelatedGameList", "Show Related Game List") {
         fun createRoute(showId: String): String {
             return "showRelatedGameList?showId=$showId"
+        }
+    }
+
+    object ShowReviewList : Screen("showReviewList", "Show Review List") {
+        fun createRoute(showId: String): String {
+            return "showReviewList?showId=$showId"
+        }
+    }
+
+    object CharacterReviewList : Screen("characterReviewList", "Character Review List") {
+        fun createRoute(characterId: String): String {
+            return "characterReviewList?characterId=$characterId"
+        }
+    }
+
+    object GameReviewList : Screen("gameReviewList", "Game Review List") {
+        fun createRoute(gameId: String): String {
+            return "gameReviewList?gameId=$gameId"
+        }
+    }
+
+    object LiteratureReviewList : Screen("literatureReviewList", "Literature Review List") {
+        fun createRoute(literatureId: String): String {
+            return "literatureReviewList?literatureId=$literatureId"
+        }
+    }
+
+    object PersonReviewList : Screen("personReviewList", "Person Review List") {
+        fun createRoute(personId: String): String {
+            return "personReviewList?personId=$personId"
+        }
+    }
+
+    object EpisodeReviewList : Screen("episodeReviewList", "Episode Review List") {
+        fun createRoute(episodeId: String): String {
+            return "episodeReviewList?episodeId=$episodeId"
+        }
+    }
+
+    object SongReviewList : Screen("songReviewList", "Song Review List") {
+        fun createRoute(songId: String): String {
+            return "songReviewList?songId=$songId"
+        }
+    }
+
+    object StudioReviewList : Screen("studioReviewList", "Studio Review List") {
+        fun createRoute(studioId: String): String {
+            return "studioReviewList?studioId=$studioId"
+        }
+    }
+
+    object ProfileReviewList : Screen("profileReviewList", "Profile Review List") {
+        fun createRoute(userId: String): String {
+            return "profileReviewList?userId=$userId"
         }
     }
 

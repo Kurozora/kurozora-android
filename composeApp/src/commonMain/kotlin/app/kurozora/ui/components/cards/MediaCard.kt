@@ -457,13 +457,22 @@ fun MediaCard(
                             .align(Alignment.BottomStart)
                             .padding(8.dp)
                     ) {
-                        Text(
-                            text = title ?: "Unknown Title",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = title ?: "Unknown Title",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.White,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            LibraryStatusButton(
+                                libraryStatus = libraryStatus,
+                                onStatusSelected = onStatusSelected
+                            )
+                        }
                     }
                 }
             }

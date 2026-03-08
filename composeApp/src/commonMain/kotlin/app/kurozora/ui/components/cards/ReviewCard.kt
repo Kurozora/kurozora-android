@@ -27,12 +27,13 @@ import kurozorakit.data.models.review.Review
 @Composable
 fun ReviewCard(
     review: Review,
-    badgeIcons: List<Painter> = emptyList()
+    badgeIcons: List<Painter> = emptyList(),
+    modifier: Modifier = Modifier
 ) {
     val user = review.relationships?.users?.data?.firstOrNull()
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .width(300.dp)
             .background(Color.White.copy(alpha = 0.1f), shape = RoundedCornerShape(10.dp))
             .padding(14.dp)

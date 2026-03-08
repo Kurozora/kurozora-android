@@ -35,10 +35,6 @@ import app.kurozora.ui.screens.search.filters.StudioFilterViewModel
 import com.russhwolf.settings.Settings
 import kurozorakit.api.AccountUser
 import kurozorakit.api.TokenProvider
-import kurozorakit.cache.CacheConfig
-import kurozorakit.cache.CacheManager
-import kurozorakit.cache.FileBasedCache
-import kurozorakit.cache.InMemoryCache
 import kurozorakit.core.KurozoraApi
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.models.search.filters.CharacterFilter
@@ -48,6 +44,7 @@ import kurozorakit.data.models.search.filters.LiteratureFilter
 import kurozorakit.data.models.search.filters.PersonFilter
 import kurozorakit.data.models.search.filters.ShowFilter
 import kurozorakit.data.models.search.filters.StudioFilter
+import kurozorakit.shared.UserAgent
 import org.koin.compose.viewmodel.dsl.viewModel
 import org.koin.core.context.GlobalContext
 import org.koin.core.module.Module
@@ -65,36 +62,14 @@ object KurozoraTokenProvider : TokenProvider {
     }
 }
 
-val inMemoryCache = InMemoryCache(
-    name = "L1-Memory",
-    config = CacheConfig(
-        defaultTtlMillis = 300000, // 5 minutes
-        maxEntries = 100
-    )
-)
-val fileCache = FileBasedCache(
-    name = "L2-Disk",
-    cacheDir = File("./app.kurozora-cache"),
-    config = CacheConfig(
-        defaultTtlMillis = 300000, // 1 hour
-        maxSize = 50 * 1024 * 1024 // 50 MB
-    )
-)
-val cacheManager = CacheManager(
-    caches = listOf(
-        //fileCache,
-        inMemoryCache,
-    )
-)
-
-fun commonModule(enableNetworkLogs: Boolean) = module {
+fun commonModule() = module {
     single {
         KurozoraKit.Builder()
             .apiEndpoint(KurozoraApi.V1.baseUrl)
             .apiKey("api_key")
             .tokenProvider(KurozoraTokenProvider)
             .platform(getPlatform())
-            //.cacheManager(cacheManager)
+            .userAgent(UserAgent(appName = "KtorClient", appVersion = "1.0.0", appID = "com.seloreis.kurozora", platformName = getPlatform().platform, platformVersion = getPlatform().platformVersion))
             .build()
     }
 
