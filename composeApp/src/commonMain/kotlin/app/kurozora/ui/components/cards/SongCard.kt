@@ -62,14 +62,16 @@ fun SongCard(
                     .height(240.dp)
             ) {
                 // Şarkı görseli
+                println("Şarkı görseli:")
+                println(song.attributes.artwork?.url)
+//                song.attributes.artwork?.url?.let {
+//
+//                }
                 KamelImage(
-                    { asyncPainterResource(song.attributes.artwork?.url.orEmpty()) },
+                    resource = { asyncPainterResource(song.attributes.artwork?.url.orEmpty()) },
                     contentDescription = "Song artwork",
-                    modifier = Modifier.fillMaxSize()
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(12.dp)),
+                    modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop,
-                    alpha = DefaultAlpha,
                     onFailure = {
                         songPlaceholder?.decodeToImageBitmap()?.let { bitmap ->
                             Image(
@@ -91,38 +93,6 @@ fun SongCard(
                         }
                     }
                 )
-                // Hafif degrade overlay efekti
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(
-//                            brush = Brush.verticalGradient(
-//                                colors = listOf(
-//                                    Color.Transparent,
-//                                    Color(0x66000000)
-//                                )
-//                            )
-//                        )
-//                )
-                // Sağ üstte "Music" etiketi
-//                Box(
-//                    modifier = Modifier
-//                        .align(Alignment.TopEnd)
-//                        .padding(8.dp)
-//                        .background(
-//                            color = Color(0x33FFFFFF),
-//                            shape = RoundedCornerShape(8.dp)
-//                        )
-//                        .padding(horizontal = 6.dp, vertical = 2.dp),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    Text(
-//                        text = "Music",
-//                        color = Color.White,
-//                        fontSize = 12.sp,
-//                        fontWeight = FontWeight.Medium
-//                    )
-//                }
             }
 
             Spacer(modifier = Modifier.height(30.dp))

@@ -1,6 +1,6 @@
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -10,6 +10,28 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.aboutLibraries)
+    alias(libs.plugins.buildKonfig)
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        load(file.inputStream())
+    }
+}
+
+val apiKey = localProperties.getProperty("KUROZORA_API_KEY") ?: ""
+
+buildkonfig {
+    packageName = "app.kurozora"
+
+    defaultConfigs {
+        buildConfigField(
+            type = com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            name = "API_KEY",
+            value = apiKey
+        )
+    }
 }
 
 kotlin {
@@ -31,6 +53,7 @@ kotlin {
 
             implementation(libs.ktor.client.okhttp)
             implementation("com.google.android.material:material:1.9.0")
+            implementation("app.cash.sqldelight:android-driver:2.0.2")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -59,7 +82,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            implementation("app.kurozora:kurozorakit:1.2.5")
+            implementation("app.kurozora:kurozorakit:1.2.6")
 
             implementation(libs.mediamp.all)
 

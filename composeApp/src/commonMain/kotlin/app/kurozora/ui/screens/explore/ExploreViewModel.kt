@@ -31,13 +31,13 @@ class ExploreViewModel(
     /**
      * İlk aşamada kategorileri yükle ve her kategorinin sadece identity listesini sakla
      */
-    fun fetchExplore(genreId: String? = null, themeId: String? = null) {
+    fun fetchExplore(genreId: String? = null, themeId: String? = null, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
                 val exploreResult = kurozoraKit.explore()
-                    .getExplore(genreId = genreId, themeId = themeId)
+                    .getExplore(genreId = genreId, themeId = themeId, forceRefresh = forceRefresh)
 
                 if (exploreResult is Result.Success) {
                     val categories = exploreResult.data.data

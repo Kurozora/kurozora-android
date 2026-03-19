@@ -38,7 +38,7 @@ class GameDetailViewModel(
             val result = kurozoraKit.game().getGame(
                 gameId, listOf(
                     "cast", "characters", "related-shows", "related-games", "related-literatures", "songs", "staff", "studios"
-                )
+                ), true
             )
             val moreByStudioIds = kurozoraKit.game().getMoreByStudio(gameId)
             val reviews = kurozoraKit.game().getGameReviews(gameId)
@@ -53,12 +53,12 @@ class GameDetailViewModel(
                         castIds = relationships?.cast?.data?.map { it.id } ?: emptyList(),
                         characterIds = relationships?.characters?.data?.map { it.id }
                             ?: emptyList(),
-                        relatedShows = relationships?.relatedShows?.data as List<RelatedShow>,
-                        relatedGames = relationships.relatedGames?.data as List<RelatedGame>,
-                        relatedLiteratures = relationships.relatedLiteratures?.data as List<RelatedLiterature>,
-                        peopleIds = relationships.people?.data?.map { it.id } ?: emptyList(),
-                        staffIds = relationships.staff?.data?.map { it.id } ?: emptyList(),
-                        studioIds = relationships.studios?.data?.map { it.id } ?: emptyList(),
+                        relatedShows = relationships?.relatedShows?.data ?: emptyList(),
+                        relatedGames = relationships?.relatedGames?.data ?: emptyList(),
+                        relatedLiteratures = relationships?.relatedLiteratures?.data ?: emptyList(),
+                        peopleIds = relationships?.people?.data?.map { it.id } ?: emptyList(),
+                        staffIds = relationships?.staff?.data?.map { it.id } ?: emptyList(),
+                        studioIds = relationships?.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),
                         reviews = reviews.getOrNull()?.data ?: emptyList(),

@@ -56,7 +56,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +83,7 @@ fun MediaCard(
     topTitle: String,
     description: String?,
     tagline: String,
+    expectedAt: String? = null,
     posterUrl: String?,
     bannerUrl: String? = null,
     onClick: () -> Unit,
@@ -301,10 +301,32 @@ fun MediaCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        LibraryStatusButton(
-                            libraryStatus = libraryStatus,
-                            onStatusSelected = onStatusSelected
-                        )
+                        val isReminded = libraryStatus == KKLibrary.Status.PLANNING
+                        Button(
+                            onClick = { onStatusSelected(KKLibrary.Status.PLANNING) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Text(
+                                text = if (isReminded) "Reminded" else "Remind Me",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+//                            Icon(
+//                                imageVector = Icons.Filled.ArrowDropDown,
+//                                contentDescription = "Dropdown",
+//                                modifier = Modifier.size(16.dp)
+//                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(text = "Expected $expectedAt", )
                     }
                 }
             }
@@ -488,6 +510,7 @@ fun AnimeCard(
     viewMode: MediaCardViewMode = MediaCardViewMode.List,
     onStatusSelected: (KKLibrary.Status) -> Unit,
     topTitle: String = "",
+    expectedAt: String? = null,
     modifier: Modifier = Modifier,
 ) {
     MediaCard(
@@ -496,6 +519,7 @@ fun AnimeCard(
         description = show.attributes.synopsis,
         topTitle = topTitle,
         tagline = show.attributes.tagline ?: "",
+        expectedAt = expectedAt,
         posterUrl = show.attributes.poster?.url,
         bannerUrl = show.attributes.banner?.url,
         onClick = onClick,
@@ -721,16 +745,16 @@ fun MediaBannerPager(
     Box(
         modifier = modifier
             // 🖱 Desktop hover
-            .pointerMoveFilter(
-                onEnter = {
-                    isHovered = true
-                    false
-                },
-                onExit = {
-                    isHovered = false
-                    false
-                }
-            )
+//            .pointerMoveFilter(
+//                onEnter = {
+//                    isHovered = true
+//                    false
+//                },
+//                onExit = {
+//                    isHovered = false
+//                    false
+//                }
+//            )
     ) {
         HorizontalPager(
             state = pagerState,

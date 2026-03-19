@@ -47,9 +47,11 @@ class ShowDetailViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.show().getShow(
-                showId, listOf(
+                showId,
+                relationships = listOf(
                     "cast", "characters", "related-shows", "related-games", "related-literatures", "seasons", "songs", "staff", "studios"
-                )
+                ),
+                forceRefresh = true
             )
             val moreByStudioIds = kurozoraKit.show().getMoreByStudio(showId)
             val reviews = kurozoraKit.show().getShowReviews(showId)
@@ -62,13 +64,13 @@ class ShowDetailViewModel(
                     it.copy(
                         show = show,
                         castIds = relationships?.cast?.data?.map { it.id } ?: emptyList(),
-                        characters = relationships?.characters?.data as List<Character>,
-                        relatedShows = relationships?.relatedShows?.data as List<RelatedShow>,
-                        relatedGames = relationships?.relatedGames?.data as List<RelatedGame>,
-                        relatedLiteratures = relationships?.relatedLiteratures?.data as List<RelatedLiterature>,
+                        characters = relationships?.characters?.data ?: emptyList(),
+                        relatedShows = relationships?.relatedShows?.data ?: emptyList(),
+                        relatedGames = relationships?.relatedGames?.data ?: emptyList(),
+                        relatedLiteratures = relationships?.relatedLiteratures?.data ?: emptyList(),
                         seasonIds = relationships?.seasons?.data?.map { it.id } ?: emptyList(),
-                        showSongs = relationships?.showSongs?.data as List<ShowSong>,
-                        staff = relationships?.staff?.data as List<Staff>,
+                        showSongs = relationships?.showSongs?.data ?: emptyList(),
+                        staff = relationships?.staff?.data ?: emptyList(),
                         studioIds = relationships?.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),

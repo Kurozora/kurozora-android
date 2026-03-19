@@ -52,8 +52,10 @@ import app.kurozora.ui.components.cards.RecapCard
 import app.kurozora.ui.components.cards.SongCard
 import app.kurozora.ui.components.cards.ThemeCard
 import app.kurozora.ui.components.cards.parseColor
+import app.kurozora.ui.screens.detail.toReadableDate
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import kotlinx.datetime.Instant
 import kurozorakit.data.models.character.Character
 import kurozorakit.data.models.episode.Episode
 import kurozorakit.data.models.explore.ExploreCategory
@@ -108,7 +110,7 @@ fun ExploreScreen(
                             modifier = Modifier.size(30.dp),
                             contentScale = ContentScale.Fit
                         )
-                        Text("Explore", modifier = Modifier.clickable{ viewModel.fetchExplore() })
+                        Text("Explore", modifier = Modifier.clickable{ viewModel.fetchExplore(forceRefresh = true) })
                         Text(
                             text = uiState.genre?.attributes?.name
                                 ?: uiState.theme?.attributes?.name
@@ -251,14 +253,24 @@ fun ExploreScreen(
                                     }
 
                                     when (item) {
-                                        is Show -> AnimeCard(
-                                            show = item,
-                                            viewMode = animeViewMode,
-                                            onClick = { onNavigateToItemDetail(item) },
-                                            onStatusSelected = { newStatus ->
-                                                viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Show)
-                                            }
-                                        )
+                                        is Show -> {
+                                            val expectedAt =
+                                                if (category.attributes.title == "Upcoming Shows") {
+                                                    item
+                                                        .attributes
+                                                        .nextBroadcastAt
+                                                        ?.let { Instant.fromEpochSeconds(it).toReadableDate() }
+                                                } else null
+                                            AnimeCard(
+                                                show = item,
+                                                viewMode = animeViewMode,
+                                                onClick = { onNavigateToItemDetail(item) },
+                                                onStatusSelected = { newStatus ->
+                                                    viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Show)
+                                                },
+                                                expectedAt = expectedAt
+                                            )
+                                        }
 
                                         is Literature -> LiteratureCard(
                                             item,

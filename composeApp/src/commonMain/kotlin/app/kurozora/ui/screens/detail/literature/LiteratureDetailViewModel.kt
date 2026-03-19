@@ -35,7 +35,7 @@ class LiteratureDetailViewModel(
             val result = kurozoraKit.literature().getLiterature(
                 litId, listOf(
                     "cast", "characters", "related-shows", "related-games", "related-literatures", "staff", "studios"
-                )
+                ), true
             )
             val moreByStudioIds = kurozoraKit.literature().getMoreByStudio(litId)
             val reviews = kurozoraKit.literature().getLiteratureReviews(litId)

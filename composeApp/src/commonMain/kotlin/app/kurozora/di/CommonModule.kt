@@ -1,5 +1,6 @@
 package app.kurozora.di
 
+import app.kurozora.BuildKonfig
 import app.kurozora.core.settings.AccountManager
 import app.kurozora.core.settings.SettingsManager
 import app.kurozora.getPlatform
@@ -45,6 +46,8 @@ import kurozorakit.data.models.search.filters.PersonFilter
 import kurozorakit.data.models.search.filters.ShowFilter
 import kurozorakit.data.models.search.filters.StudioFilter
 import kurozorakit.shared.UserAgent
+import kurozorakit.store.DatabaseDriverFactory
+import kurozorakit.store.JvmDatabaseDriverFactory
 import org.koin.compose.viewmodel.dsl.viewModel
 import org.koin.core.context.GlobalContext
 import org.koin.core.module.Module
@@ -64,12 +67,14 @@ object KurozoraTokenProvider : TokenProvider {
 
 fun commonModule() = module {
     single {
+        val driverFactory: DatabaseDriverFactory = get()
         KurozoraKit.Builder()
             .apiEndpoint(KurozoraApi.V1.baseUrl)
-            .apiKey("api_key")
+            .apiKey(BuildKonfig.API_KEY)
             .tokenProvider(KurozoraTokenProvider)
             .platform(getPlatform())
             .userAgent(UserAgent(appName = "KtorClient", appVersion = "1.0.0", appID = "com.seloreis.kurozora", platformName = getPlatform().platform, platformVersion = getPlatform().platformVersion))
+            .databaseDriverFactory(driverFactory)
             .build()
     }
 
