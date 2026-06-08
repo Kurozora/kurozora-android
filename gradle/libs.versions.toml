@@ -32,6 +32,7 @@ mediamp = "0.0.29"
 
 aboutLibraries = "13.1.0"
 buildKonfig = "0.17.1"
+filekit = "0.13.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -89,6 +90,8 @@ aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref
 # Compose UI modules (choose one or both)
 aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose-core", version.ref = "aboutLibraries" } # Common compose core
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }      # Material 3 UI
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
+filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -106,3 +109,4 @@ ktor = ["ktor-client-core", "ktor-contentNegotiation", "ktor-json", "ktor-loggin
 kamel = ["kamel", "kamel-image-default"]
 coil = ["coil-compose-core", "coil-compose", "coil-ktor", "coil-multiplatform"]
 multiplatformSettings = ["multiplatform-settings-core", "multiplatform-settings-serialization", "multiplatform-settings-no-arg"]
+filekit = ["filekit-core", "filekit-compose"]

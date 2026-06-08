@@ -54,6 +54,10 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation("com.google.android.material:material:1.9.0")
             implementation("app.cash.sqldelight:android-driver:2.0.2")
+            implementation("io.github.2307vivek:seeker:1.2.2")
+            implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0-alpha13") // KMP destekli sürüm
+            implementation("com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0")
+            implementation("me.saket.telephoto:zoomable-image-coil3:0.14.0") // Sürüm numaranızı kontrol edin
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -67,6 +71,7 @@ kotlin {
 
             implementation(libs.coroutines)
             implementation(libs.kotlinX.dateTime)
+            implementation("io.github.pdvrieze.xmlutil:serialization:0.90.3")
 
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
@@ -88,6 +93,7 @@ kotlin {
 
             implementation(libs.aboutlibraries.core)
             implementation(libs.aboutlibraries.compose.m3)
+            implementation(libs.bundles.filekit)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
