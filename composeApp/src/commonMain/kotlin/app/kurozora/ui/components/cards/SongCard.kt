@@ -38,6 +38,7 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 @Composable
 fun SongCard(
     song: Song,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     var songPlaceholder: ByteArray? by remember { mutableStateOf(null) }
@@ -46,8 +47,8 @@ fun SongCard(
         songPlaceholder = Res.readBytes("files/static/placeholders/music_album.webp")
     }
     Column(
-        modifier = Modifier
-            .width(280.dp)
+        modifier = modifier
+            .width(240.dp)
             .height(320.dp)
             .clickable { onClick() },
     ) {
@@ -61,16 +62,10 @@ fun SongCard(
                     .fillMaxWidth()
                     .height(240.dp)
             ) {
-                // Şarkı görseli
-                println("Şarkı görseli:")
-                println(song.attributes.artwork?.url)
-//                song.attributes.artwork?.url?.let {
-//
-//                }
                 KamelImage(
                     resource = { asyncPainterResource(song.attributes.artwork?.url.orEmpty()) },
                     contentDescription = "Song artwork",
-                    modifier = Modifier.matchParentSize(),
+                    modifier = Modifier.matchParentSize().clip(RoundedCornerShape(20.dp)),
                     contentScale = ContentScale.Crop,
                     onFailure = {
                         songPlaceholder?.decodeToImageBitmap()?.let { bitmap ->
@@ -78,7 +73,7 @@ fun SongCard(
                                 bitmap = bitmap,
                                 contentDescription = "Placeholder avatar",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.FillHeight
                             )
                         }
                     },
@@ -88,14 +83,14 @@ fun SongCard(
                                 bitmap = bitmap,
                                 contentDescription = "Loading avatar",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Fit
                             )
                         }
                     }
                 )
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             // Şarkı başlığı
             Text(
                 text = song.attributes.title,
