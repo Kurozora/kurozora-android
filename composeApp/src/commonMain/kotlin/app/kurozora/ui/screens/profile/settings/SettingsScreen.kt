@@ -12,25 +12,33 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -43,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,32 +59,57 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.window.core.layout.WindowWidthSizeClass
 import app.kurozora.core.settings.AccountManager
 import app.kurozora.core.settings.AccountScopedSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kurozora.composeapp.generated.resources.Res
+import kurozorakit.data.models.user.User
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
 @Composable
 fun SettingsScreen(
+    currentUser: User,
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
     onNavigateToLoginScreen: () -> Unit,
+    viewModel: SettingsViewModel = koinViewModel(),
 ) {
+    val state by viewModel.state.collectAsState()
     val accountManager: AccountManager = koinInject()
     val scopedSettings = accountManager.getScopedSettings()!!
-    val categories = remember { generateSettingsCategories(scopedSettings) }
+    val categories = remember(state) {
+        generateSettingsCategories(scopedSettings, state, viewModel::onEvent)
+    }
     var selectedCategory by remember { mutableStateOf(categories.firstOrNull()) }
     val isLargeScreen = windowWidth == WindowWidthSizeClass.EXPANDED
+
+    LaunchedEffect(categories) {
+        if (selectedCategory !in categories) {
+            selectedCategory = categories.firstOrNull()
+        }
+    }
+
+    LaunchedEffect(state.importLibraryFileContent) {
+        println("SettingsScreen - Content changed: ${state.importLibraryFileContent?.length}")
+    }
 
     Scaffold(
         topBar = {
@@ -87,6 +121,11 @@ fun SettingsScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { viewModel.onEvent(SettingsEvent.SaveAccountDetails) }) {
+                Text("Save", modifier = Modifier.padding(horizontal = 16.dp))
+            }
         }
     ) { padding ->
         if (isLargeScreen) {
@@ -128,7 +167,7 @@ fun SettingsScreen(
 
 
                 Box(Modifier.weight(1f).fillMaxHeight()) {
-                    selectedCategory?.let { SettingsCategoryDetail(it, scopedSettings) }
+                    selectedCategory?.let { SettingsCategoryDetail(it, scopedSettings, state) }
                 }
             }
         } else {
@@ -179,7 +218,7 @@ fun SettingsScreen(
                                         }
                                     }
                                 )
-                                SettingsCategoryDetail(category, scopedSettings)
+                                SettingsCategoryDetail(category, scopedSettings, state)
                             }
                         }
                     }
@@ -190,19 +229,20 @@ fun SettingsScreen(
 }
 
 @Composable
-fun SettingsCategoryDetail(category: SettingsCategory, scopedSettings: AccountScopedSettings) {
+fun SettingsCategoryDetail(
+    category: SettingsCategory,
+    scopedSettings: AccountScopedSettings,
+    state: SettingsState,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(category.items) { item ->
-            SettingsItemRow(item, scopedSettings)
-//            when (item) {
-////                is SettingItem.SwitchSetting -> SwitchSettingItem(item, scopedSettings)
-////                is SettingItem.SingleSelectSetting -> SingleSelectSettingItem(item, scopedSettings)
-////                is SettingItem.MultiSelectSetting -> MultiSelectSettingItem(item, scopedSettings)
-////                is SettingItem.CustomSetting -> item.content.invoke()
-//            }
+        items(
+            items = category.items,
+            key = { it.key }
+        ) { item ->
+            SettingsItemRow(item, scopedSettings, state)
         }
     }
 }
@@ -212,6 +252,7 @@ fun SettingsCategoryDetail(category: SettingsCategory, scopedSettings: AccountSc
 fun SettingsItemRow(
     item: SettingItem,
     scopedSettings: AccountScopedSettings,
+    state: SettingsState,
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -237,7 +278,7 @@ fun SettingsItemRow(
         when (item) {
             is SettingItem.CustomSetting -> {
                 if (!item.isFullDialog) {
-                    item.content.invoke()
+                    item.content?.invoke()
                 } else {
                     Column(Modifier.padding(16.dp)) {
                         Text(item.title)
@@ -250,6 +291,79 @@ fun SettingsItemRow(
             is SettingItem.SwitchSetting -> SwitchSettingItem(item, scopedSettings)
             is SettingItem.SingleSelectSetting -> SingleSelectSettingItem(item, scopedSettings)
             is SettingItem.MultiSelectSetting -> MultiSelectSettingItem(item, scopedSettings)
+
+            is SettingItem.ImagePickerSetting -> {
+                val launcher = rememberFilePickerLauncher(
+                    type = FileKitType.Image,
+                    mode = FileKitMode.Single,
+                ) { platformFile ->
+                    platformFile?.let { item.onImageSelected(it) }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = item.title, style = MaterialTheme.typography.bodyLarge)
+                        item.subtitle?.let {
+                            Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Button(onClick = { launcher.launch() }) {
+                        Text("Upload")
+                    }
+                }
+            }
+
+            is SettingItem.TextInputSetting -> TextInputSettingItem(item, scopedSettings)
+
+            is SettingItem.ActionButtonSetting -> {
+                Button(
+                    onClick = item.onClick,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (item.isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(item.buttonText)
+                }
+            }
+
+            is SettingItem.FilePickerSetting -> {
+                val launcher = rememberFilePickerLauncher(
+                    type = FileKitType.File((item.fileExtensions)),
+                    mode = FileKitMode.Single,
+                ) { platformFile ->
+                    platformFile?.let { item.onFileSelected(it) }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = item.title, style = MaterialTheme.typography.bodyLarge)
+                        item.subtitle?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Button(onClick = { launcher.launch() }) {
+                        Text(item.buttonText)
+                    }
+                }
+            }
+
         }
     }
 
@@ -273,7 +387,12 @@ fun SettingsItemRow(
                             }
                         }
                     )
-                    item.content.invoke()
+
+                    key(item.key) {
+//                        item.content.invoke()
+                        item.contentWithState(state)
+                    }
+
                 }
             }
         }
@@ -309,20 +428,55 @@ fun SwitchSettingItem(item: SettingItem.SwitchSetting, scopedSettings: AccountSc
 @Composable
 fun SingleSelectSettingItem(item: SettingItem.SingleSelectSetting, scopedSettings: AccountScopedSettings) {
     var showDialog by remember { mutableStateOf(false) }
-    // Seçili değer her zaman scopedSettings üzerinden okunuyor
-    val selected by derivedStateOf { scopedSettings[item.key] ?: item.options.first() }
+    var searchQuery by remember { mutableStateOf("") } // Arama kelimesi için state
+
+    // Seçili değer
+    val selected by derivedStateOf { scopedSettings[item.key] ?: item.selected }
+
+    // Seçenekleri arama sorgusuna göre filtrele
+    val filteredOptions by derivedStateOf {
+        if (searchQuery.isEmpty()) {
+            item.options
+        } else {
+            item.options.filter { it.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
+    val listState = rememberLazyListState()
+
+    // Basit bir Scrollbar Modifier (Android tarzı)
+    val scrollbarModifier = Modifier.drawWithContent {
+        drawContent()
+        val firstVisibleElementIndex = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0
+        val needScrollbar = listState.layoutInfo.totalItemsCount > listState.layoutInfo.visibleItemsInfo.size
+
+        if (needScrollbar) {
+            val elementHeight = this.size.height / listState.layoutInfo.totalItemsCount
+            val scrollbarHeight = listState.layoutInfo.visibleItemsInfo.size * elementHeight
+            val scrollbarOffset = firstVisibleElementIndex * elementHeight
+
+            drawRect(
+                color = Color.Gray.copy(alpha = 0.5f),
+                topLeft = Offset(this.size.width - 8f, scrollbarOffset),
+                size = Size(4f, scrollbarHeight)
+            )
+        }
+    }
 
     Column {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable { showDialog = true }
+                .clickable {
+                    searchQuery = "" // Dialog açılırken aramayı sıfırla
+                    showDialog = true
+                }
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(item.title)
-                Text(selected, style = MaterialTheme.typography.bodySmall)
+                Text(selected.orEmpty(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -330,26 +484,73 @@ fun SingleSelectSettingItem(item: SettingItem.SingleSelectSetting, scopedSetting
             AlertDialog(
                 containerColor = MaterialTheme.colorScheme.background,
                 onDismissRequest = { showDialog = false },
-                confirmButton = { TextButton(onClick = { showDialog = false }) { Text("Close") } },
+                confirmButton = {
+                    TextButton(onClick = { showDialog = false }) { Text("Close") }
+                },
                 title = { Text(item.title) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        item.options.forEach { option ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        scopedSettings[item.key] = option
-                                        showDialog = false
-                                    },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(selected = selected == option, onClick = {
-                                    scopedSettings[item.key] = option
-                                    showDialog = false
-                                })
-                                Spacer(Modifier.width(8.dp))
-                                Text(option)
+                    // Dialog içeriğinin boyutu ve yapısı
+                    Column(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp), // Çok uzamaması için max yükseklik
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Eğer arama desteği aktifse TextField göster
+                        if (item.supportsSearch) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("Search...") },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+
+                        // Kaydırılabilir Liste
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxWidth().weight(1f, fill = false).then(scrollbarModifier),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(filteredOptions) { option ->
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            item.onValueChanged(option)
+                                            scopedSettings[item.key] = option
+                                            showDialog = false
+                                        }
+                                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = selected == option,
+                                        onClick = {
+                                            item.onValueChanged(option)
+                                            scopedSettings[item.key] = option
+                                            showDialog = false
+                                        }
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = option,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
+                            }
+
+                            if (filteredOptions.isEmpty()) {
+                                item {
+                                    Text(
+                                        "No results found",
+                                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
                     }
@@ -358,7 +559,6 @@ fun SingleSelectSettingItem(item: SettingItem.SingleSelectSetting, scopedSetting
         }
     }
 }
-
 @Suppress("UnrememberedMutableState")
 @Composable
 fun MultiSelectSettingItem(item: SettingItem.MultiSelectSetting, scopedSettings: AccountScopedSettings) {
@@ -423,6 +623,207 @@ fun MultiSelectSettingItem(item: SettingItem.MultiSelectSetting, scopedSettings:
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TextInputSettingItem(item: SettingItem.TextInputSetting, scopedSettings: AccountScopedSettings) {
+    var showDialog by remember { mutableStateOf(false) }
+    var tempValue by remember { mutableStateOf(item.value) }
+
+    // Mevcut değeri gösteren önizleme satırı
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable {
+                tempValue = item.value // Dialog açılırken mevcut değeri temp'e al
+                showDialog = true
+            }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = if (item.value.isBlank()) "Not set" else item.value,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (item.value.isBlank())
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Düzenleme ikonu
+        Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = "Edit",
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+
+    // Text Input Dialog
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text(text = item.title)
+            },
+            text = {
+                Column {
+                    item.subtitle?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = tempValue,
+                        onValueChange = { tempValue = it },
+                        label = { Text(item.title) },
+                        placeholder = { item.placeholder?.let { Text(it) } },
+                        singleLine = !item.isMultiline,
+                        maxLines = if (item.isMultiline) 5 else 1,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        item.onValueChanged(tempValue)
+                        scopedSettings[item.key] = tempValue
+                        showDialog = false
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun TextInputSettingItem(item: SettingItem.TextInputSetting, scopedSettings: AccountScopedSettings) {
+//    var showDialog by remember { mutableStateOf(false) }
+//    var tempValue by remember { mutableStateOf(item.value) }
+//
+//    // Mevcut değeri gösteren önizleme satırı
+//    Row(
+//        Modifier
+//            .fillMaxWidth()
+//            .clickable {
+//                tempValue = item.value // Dialog açılırken mevcut değeri temp'e al
+//                showDialog = true
+//            }
+//            .padding(16.dp),
+//        verticalAlignment = Alignment.CenterVertically,
+//        horizontalArrangement = Arrangement.SpaceBetween
+//    ) {
+//        Column {
+//            Text(
+//                text = item.title,
+//                style = MaterialTheme.typography.bodyLarge
+//            )
+//            Text(
+//                text = if (item.value.isBlank()) "Not set" else item.value,
+//                style = MaterialTheme.typography.bodySmall,
+//                color = if (item.value.isBlank())
+//                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+//                else MaterialTheme.colorScheme.onSurfaceVariant
+//            )
+//        }
+//
+//        // Opsiyonel: sağ tarafta düzenleme ikonu
+//        Icon(
+//            imageVector = Icons.Default.Edit,
+//            contentDescription = "Edit",
+//            tint = MaterialTheme.colorScheme.primary
+//        )
+//    }
+//
+//    // Text Input Dialog
+//    if (showDialog) {
+//        AlertDialog(
+//            onDismissRequest = { showDialog = false },
+//            title = {
+//                Text(text = item.title)
+//            },
+//            text = {
+//                Column {
+//                    item.subtitle?.let {
+//                        Text(
+//                            text = it,
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+//                            modifier = Modifier.padding(bottom = 16.dp)
+//                        )
+//                    }
+//
+//                    OutlinedTextField(
+//                        value = tempValue,
+//                        onValueChange = { tempValue = it },
+//                        label = { Text(item.title) },
+//                        placeholder = { item.placeholder?.let { Text(it) } },
+//                        singleLine = !item.isMultiline,
+//                        maxLines = if (item.isMultiline) 5 else 1,
+//                        modifier = Modifier.fillMaxWidth(),
+//                        isError = item.validationError != null && tempValue.isNotBlank() && !item.validationError(tempValue).isNullOrEmpty(),
+//                        supportingText = {
+//                            item.validationError?.let { validationFunc ->
+//                                val error = validationFunc(tempValue)
+//                                if (error != null) {
+//                                    Text(
+//                                        text = error,
+//                                        color = MaterialTheme.colorScheme.error,
+//                                        style = MaterialTheme.typography.bodySmall
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    )
+//                }
+//            },
+//            confirmButton = {
+//                TextButton(
+//                    onClick = {
+//                        // Validation kontrolü
+//                        val hasError = item.validationError?.let { validationFunc ->
+//                            tempValue.isNotBlank() && validationFunc(tempValue) != null
+//                        } ?: false
+//
+//                        if (!hasError) {
+//                            item.onValueChanged(tempValue)
+//                            scopedSettings[item.key] = tempValue
+//                            showDialog = false
+//                        }
+//                    },
+//                    enabled = !(item.validationError?.let {
+//                        tempValue.isNotBlank() && it(tempValue) != null
+//                    } ?: false)
+//                ) {
+//                    Text("Save")
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(onClick = { showDialog = false }) {
+//                    Text("Cancel")
+//                }
+//            }
+//        )
+//    }
+//}
 
 @Composable
 fun AccountSwitcher(

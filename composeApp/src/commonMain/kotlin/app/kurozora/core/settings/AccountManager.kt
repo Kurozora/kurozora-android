@@ -3,7 +3,10 @@ package app.kurozora.core.settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.serialization.json.Json
 import kurozorakit.api.AccountUser
+import kurozorakit.data.models.user.User
 
 class AccountManager(
     private val settingsManager: SettingsManager,
@@ -20,6 +23,11 @@ class AccountManager(
     fun addAccount(account: AccountUser) {
         settingsManager.addOrUpdateAccount(account)
         if (_activeAccount.value == null) switchAccount(account.id)
+    }
+
+    fun updateActiveAccount(profileUrl: String) {
+        val accountUser = _activeAccount.update { it?.copy(profileUrl = profileUrl) }
+        settingsManager.addOrUpdateAccount(activeAccount.value!!)
     }
 
     fun switchAccount(id: String) {
