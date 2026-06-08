@@ -20,6 +20,7 @@ data class SearchState(
     val searchItemIdentities: List<String> = emptyList(),
     val searchItems: Map<String, Any> = emptyMap(), // itemId -> item
     val query: String = "",
+    val suggestions: List<String> = emptyList(),
     val selectedTypes: Set<KKSearchType> = setOf(
         KKSearchType.shows,
         KKSearchType.literatures,
@@ -76,4 +77,16 @@ data class SearchState(
     val loadingItems: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-)
+) {
+    fun shouldShowSuggestions(): Boolean =
+        query.isEmpty() && suggestions.isNotEmpty() && activeType == null
+
+    fun shouldShowBrowseGrid(): Boolean =
+        query.isEmpty() && !hasResults() && activeType == null
+
+    fun hasResults(): Boolean = listOf(
+        characterIds, episodeIds, gameIds, showIds,
+        literatureIds, peopleIds, seasonIds, songIds,
+        studioIds, userIds
+    ).any { it.isNotEmpty() }
+}

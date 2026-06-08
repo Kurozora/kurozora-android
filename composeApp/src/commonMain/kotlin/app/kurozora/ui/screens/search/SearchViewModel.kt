@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import app.kurozora.ui.components.cards.MediaCardViewMode
 import app.kurozora.ui.screens.explore.ItemType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,10 +45,97 @@ class SearchViewModel(
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
 
+    // 🆕 Suggestions için debounce job
+    private var suggestionJob: Job? = null
+
+    // 🆕 Suggestions'ları çek
+    fun fetchSuggestions(query: String) {
+        suggestionJob?.cancel()
+
+        suggestionJob = viewModelScope.launch {
+            // Sadece boş query'de veya çok kısa query'de suggestions göster
+            if (query.isNotEmpty() && query.length < 2) {
+                _state.update { it.copy(suggestions = emptyList()) }
+                return@launch
+            }
+
+            delay(300) // Debounce
+
+            val result = kurozoraKit.search().getSearchSuggestions(
+                scope = KKSearchScope.kurozora,
+                types = listOf(KKSearchType.shows),
+                query = query
+            )
+
+            when (result) {
+                is Result.Success -> {
+                    _state.update {
+                        it.copy(
+                            suggestions = result.data.data.take(10) // Max 10 suggestion
+                        )
+                    }
+                }
+                is Result.Error -> {
+                    // Suggestions hatasını gösterme, sessizce hata al
+                    println("Suggestions error: ${result.error.message}")
+                    _state.update { it.copy(suggestions = emptyList()) }
+                }
+            }
+        }
+    }
+
     /** 🔍 Normal arama — tüm typeları arar */
     fun search(query: String) {
-        _state.update { it.copy(query = query /* activeType = null*/) }
-        performSearch(query, allTypes())
+        _state.update {
+            it.copy(
+                query = query,
+                isLoading = query.isNotEmpty(),
+                errorMessage = null
+            )
+        }
+        if (query.isEmpty()) {
+            clearSearch()
+            fetchSuggestions(query) // Boş query için suggestions çek
+            return
+        }
+        // 🆕 Seçili typelara göre arama yap
+        val selectedTypesList = _state.value.selectedTypes.toList()
+        if (selectedTypesList.isNotEmpty()) {
+            fetchSuggestions(query)
+            performSearch(query, selectedTypesList)
+        } else {
+            // Hiçbir tip seçilmemişse tüm tiplerde ara
+            fetchSuggestions(query)
+            performSearch(query, allTypes())
+        }
+    }
+
+    fun searchWithSuggestion(suggestion: String) {
+        _state.update {
+            it.copy(
+                query = suggestion,
+                suggestions = emptyList()
+            )
+        }
+        search(suggestion)
+    }
+
+    private fun clearSearch() {
+        _state.update {
+            it.copy(
+                characterIds = emptyList(),
+                episodeIds = emptyList(),
+                gameIds = emptyList(),
+                literatureIds = emptyList(),
+                peopleIds = emptyList(),
+                showIds = emptyList(),
+                songIds = emptyList(),
+                studioIds = emptyList(),
+                userIds = emptyList(),
+                isLoading = false
+            )
+        }
+        fetchSuggestions("") // Boş query suggestions'ları çek
     }
 
     /** 🔍 Sadece belirli type’a göre arama */
@@ -63,38 +152,53 @@ class SearchViewModel(
     }
 
     fun toggleType(type: KKSearchType) {
-        _state.update {
-            val newSelected = it.selectedTypes.toMutableSet().apply {
+        _state.update { current ->
+            val newSelected = current.selectedTypes.toMutableSet().apply {
                 if (contains(type)) remove(type) else add(type)
             }
-            it.copy(selectedTypes = newSelected)
+            val newState = current.copy(selectedTypes = newSelected)
+            newState
         }
+
+        // 🆕 Seçim değiştiğinde mevcut query ile yeniden ara
+        val currentQuery = _state.value.query
+        if (currentQuery.isNotEmpty()) {
+            search(currentQuery)
+        }
+
     }
 
-    /** 🧩 Arama işlemi */
-    private fun performSearch(query: String, types: List<KKSearchType>, filter: KKSearchFilter? = null) {
+    /** 🧩 Arama işlemi - seçili typelara göre */
+    private fun performSearch(
+        query: String,
+        types: List<KKSearchType>,
+        filter: KKSearchFilter? = null
+    ) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
+            // 🆕 Eğer filter yoksa state'deki filter'ı kullan
+            val activeFilter = filter ?: _state.value.filter
+
             kurozoraKit.search().search(
                 scope = KKSearchScope.kurozora,
-                types = types,
+                types = types,  // 🆕 Artık seçili typelar geliyor
                 query = query,
-                filter = filter
+                filter = activeFilter
             ).onSuccess { res ->
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        characterIds = res.data.characters?.data?.map { it.id } ?: emptyList(),
-                        episodeIds = res.data.episodes?.data?.map { it.id } ?: emptyList(),
-                        gameIds = res.data.games?.data?.map { it.id } ?: emptyList(),
-                        showIds = res.data.shows?.data?.map { it.id } ?: emptyList(),
-                        literatureIds = res.data.literatures?.data?.map { it.id } ?: emptyList(),
-                        peopleIds = res.data.people?.data?.map { it.id } ?: emptyList(),
-                        seasonIds = res.data.seasons?.data?.map { it.id } ?: emptyList(),
-                        songIds = res.data.songs?.data?.map { it.id } ?: emptyList(),
-                        studioIds = res.data.studios?.data?.map { it.id } ?: emptyList(),
-                        userIds = res.data.users?.data?.map { it.id } ?: emptyList(),
+                        characterIds = if (types.contains(KKSearchType.characters)) res.data.characters?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        episodeIds = if (types.contains(KKSearchType.episodes)) res.data.episodes?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        gameIds = if (types.contains(KKSearchType.games)) res.data.games?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        showIds = if (types.contains(KKSearchType.shows)) res.data.shows?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        literatureIds = if (types.contains(KKSearchType.literatures)) res.data.literatures?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        peopleIds = if (types.contains(KKSearchType.people)) res.data.people?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        //seasonIds = if (types.contains(KKSearchType.seasons)) res.data.seasons?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        songIds = if (types.contains(KKSearchType.songs)) res.data.songs?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        studioIds = if (types.contains(KKSearchType.studios)) res.data.studios?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        userIds = if (types.contains(KKSearchType.users)) res.data.users?.data?.map { it.id } ?: emptyList() else emptyList(),
                         // ----------------------------------------------
                         characterNext = res.data.characters?.next,
                         episodeNext = res.data.episodes?.next,
@@ -111,6 +215,10 @@ class SearchViewModel(
                 _state.update { it.copy(isLoading = false, errorMessage = error.message) }
             }
         }
+    }
+
+    fun setActiveType(type: KKSearchType) {
+        _state.update { it.copy(activeType = type) }
     }
 
     fun updateFilter(filter: Filterable) {
@@ -166,6 +274,11 @@ class SearchViewModel(
     )
 
     fun loadMore(type: KKSearchType) {
+        // 🆕 Sadece seçili tip varsa load more yap
+        if (!_state.value.selectedTypes.contains(type) && _state.value.activeType != type) {
+            return
+        }
+
         val next = when (type) {
             KKSearchType.characters -> _state.value.characterNext
             KKSearchType.episodes -> _state.value.episodeNext
@@ -176,18 +289,18 @@ class SearchViewModel(
             KKSearchType.songs -> _state.value.songNext
             KKSearchType.studios -> _state.value.studioNext
             KKSearchType.users -> _state.value.userNext
-        } ?: return // next yoksa çık
+        } ?: return
 
         viewModelScope.launch {
             _state.update { it.copy(isLoadingMore = true, errorMessage = null) }
 
             kurozoraKit.search().search(
                 scope = KKSearchScope.kurozora,
-                types = listOf(),
-                query = "",
+                types = listOf(type), // 🆕 Sadece bu tip için yükle
+                query = _state.value.query,
+                filter = _state.value.filter,
                 next = next.removePrefix("/v1/")
             ).onSuccess { res ->
-                println("helo")
                 _state.update {
                     val oldIds = when (type) {
                         KKSearchType.characters -> it.characterIds
@@ -200,24 +313,39 @@ class SearchViewModel(
                         KKSearchType.studios -> it.studioIds
                         KKSearchType.users -> it.userIds
                     }
-                    val newIds = res.data.allIdentities() // tüm yeni id’leri getir
-                    val nextValue = res.data.characters?.next
-                        ?: // örnek, her tip ayrı kontrol edilmeli
-                        res.data.episodes?.next ?: res.data.games?.next
-                        ?: res.data.literatures?.next ?: res.data.shows?.next
-                        ?: res.data.people?.next ?: res.data.songs?.next ?: res.data.studios?.next
-                        ?: res.data.users?.next
+                    val newIds = when (type) {
+                        KKSearchType.characters -> res.data.characters?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.episodes -> res.data.episodes?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.games -> res.data.games?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.literatures -> res.data.literatures?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.shows -> res.data.shows?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.people -> res.data.people?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.songs -> res.data.songs?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.studios -> res.data.studios?.data?.map { it.id } ?: emptyList()
+                        KKSearchType.users -> res.data.users?.data?.map { it.id } ?: emptyList()
+                    }
+                    val nextValue = when (type) {
+                        KKSearchType.characters -> res.data.characters?.next
+                        KKSearchType.episodes -> res.data.episodes?.next
+                        KKSearchType.games -> res.data.games?.next
+                        KKSearchType.literatures -> res.data.literatures?.next
+                        KKSearchType.shows -> res.data.shows?.next
+                        KKSearchType.people -> res.data.people?.next
+                        KKSearchType.songs -> res.data.songs?.next
+                        KKSearchType.studios -> res.data.studios?.next
+                        KKSearchType.users -> res.data.users?.next
+                    }
 
                     when (type) {
-                        KKSearchType.characters -> it.copy(characterIds = oldIds + newIds, characterNext = nextValue)
-                        KKSearchType.episodes -> it.copy(episodeIds = oldIds + newIds, episodeNext = nextValue)
-                        KKSearchType.games -> it.copy(gameIds = oldIds + newIds, gameNext = nextValue)
-                        KKSearchType.literatures -> it.copy(literatureIds = oldIds + newIds, literatureNext = nextValue)
-                        KKSearchType.shows -> it.copy(showIds = oldIds + newIds, showNext = nextValue)
-                        KKSearchType.people -> it.copy(peopleIds = oldIds + newIds, peopleNext = nextValue)
-                        KKSearchType.songs -> it.copy(songIds = oldIds + newIds, songNext = nextValue)
-                        KKSearchType.studios -> it.copy(studioIds = oldIds + newIds, studioNext = nextValue)
-                        KKSearchType.users -> it.copy(userIds = oldIds + newIds, userNext = nextValue)
+                        KKSearchType.characters -> it.copy(characterIds = oldIds + newIds, characterNext = nextValue, isLoadingMore = false)
+                        KKSearchType.episodes -> it.copy(episodeIds = oldIds + newIds, episodeNext = nextValue, isLoadingMore = false)
+                        KKSearchType.games -> it.copy(gameIds = oldIds + newIds, gameNext = nextValue, isLoadingMore = false)
+                        KKSearchType.literatures -> it.copy(literatureIds = oldIds + newIds, literatureNext = nextValue, isLoadingMore = false)
+                        KKSearchType.shows -> it.copy(showIds = oldIds + newIds, showNext = nextValue, isLoadingMore = false)
+                        KKSearchType.people -> it.copy(peopleIds = oldIds + newIds, peopleNext = nextValue, isLoadingMore = false)
+                        KKSearchType.songs -> it.copy(songIds = oldIds + newIds, songNext = nextValue, isLoadingMore = false)
+                        KKSearchType.studios -> it.copy(studioIds = oldIds + newIds, studioNext = nextValue, isLoadingMore = false)
+                        KKSearchType.users -> it.copy(userIds = oldIds + newIds, userNext = nextValue, isLoadingMore = false)
                     }
                 }
             }.onError { error ->
