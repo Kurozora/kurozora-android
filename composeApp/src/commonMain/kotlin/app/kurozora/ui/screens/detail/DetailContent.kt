@@ -211,37 +211,40 @@ fun DetailContent(
 
                                 Spacer(modifier = Modifier.weight(1f))
 
-                                IconButton(onClick = onRemindClick) {
-                                    val isReminded = detail.library?.isReminded == true
+                                if (detail.itemType in listOf(ItemType.Show, ItemType.Literature,
+                                        ItemType.Game)) {
+                                    IconButton(onClick = onRemindClick) {
+                                        val isReminded = detail.library?.isReminded == true
 
-                                    Icon(
-                                        imageVector = if (isReminded) {
-                                            Icons.Default.NotificationsActive
-                                        } else {
-                                            Icons.Default.NotificationsNone
-                                        },
-                                        contentDescription = if (isReminded) "Remove Reminder" else "Set Reminder",
-                                        tint = if (isReminded) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            Color(0xFFB0B4C3)
-                                        }
-                                    )
-                                }
+                                        Icon(
+                                            imageVector = if (isReminded) {
+                                                Icons.Default.NotificationsActive
+                                            } else {
+                                                Icons.Default.NotificationsNone
+                                            },
+                                            contentDescription = if (isReminded) "Remove Reminder" else "Set Reminder",
+                                            tint = if (isReminded) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                Color(0xFFB0B4C3)
+                                            }
+                                        )
+                                    }
 
 
-                                IconButton(onClick = onFavoriteClick) {
-                                    Icon(
-                                        imageVector = if (detail.library?.isFavorited == true)
-                                            Icons.Default.Favorite
-                                        else
-                                            Icons.Default.FavoriteBorder,
-                                        contentDescription = "Favorite",
-                                        tint = if (detail.library?.isFavorited == true)
-                                            Color.Red
-                                        else
-                                            Color(0xFFB0B4C3)
-                                    )
+                                    IconButton(onClick = onFavoriteClick) {
+                                        Icon(
+                                            imageVector = if (detail.library?.isFavorited == true)
+                                                Icons.Default.Favorite
+                                            else
+                                                Icons.Default.FavoriteBorder,
+                                            contentDescription = "Favorite",
+                                            tint = if (detail.library?.isFavorited == true)
+                                                Color.Red
+                                            else
+                                                Color(0xFFB0B4C3)
+                                        )
+                                    }
                                 }
                             }
                         }

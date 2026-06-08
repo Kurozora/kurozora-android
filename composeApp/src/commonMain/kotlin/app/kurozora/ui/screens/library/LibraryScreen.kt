@@ -65,7 +65,7 @@ import app.kurozora.ui.components.cards.LiteratureCard
 import app.kurozora.ui.components.cards.MediaCardViewMode
 import app.kurozora.ui.screens.detail.ItemPlaceholder
 import app.kurozora.ui.screens.explore.ItemType
-import app.kurozora.ui.screens.search.FilterBottomSheet
+import app.kurozora.ui.screens.search.filters.FilterBottomSheet
 import kotlinx.coroutines.delay
 import kurozora.composeapp.generated.resources.Res
 import kurozorakit.data.enums.KKLibrary

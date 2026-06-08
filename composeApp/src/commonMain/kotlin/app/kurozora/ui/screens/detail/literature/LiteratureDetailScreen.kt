@@ -40,7 +40,6 @@ fun LiteratureDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToPeopleList: (String) -> Unit,
-    onNavigateToCastList: (String) -> Unit,
     onNavigateToStaffList: (String) -> Unit,
     onNavigateToCharacterList: (String) -> Unit,
     onNavigateToStudioList: (String) -> Unit,
@@ -121,48 +120,6 @@ fun LiteratureDetailScreen(
                     )
                 }
             }
-            // Cast
-            if (state.castIds.isNotEmpty()) {
-                item { SectionHeader(title = "Cast", onSeeAllClick = { onNavigateToCastList(literature.id) }) }
-                item {
-                    ItemList(
-                        items = state.castIds,
-                        viewMode = ItemListViewMode.Horizontal,
-                        itemContent = { id ->
-                            val cast = state.cast[id]
-                            LaunchedEffect(id) { viewModel.fetchCast(id) }
-
-                            if (cast != null) {
-                                CastCard(cast, onClick = {})
-                            } else {
-                                ItemPlaceholder()
-                            }
-                        }
-                    )
-                }
-            }
-            // Staff
-            if (state.staffIds.isNotEmpty()) {
-                item { SectionHeader(title = "Staff", onSeeAllClick = { onNavigateToStaffList(literature.id) }) }
-                item {
-                    ItemList(
-                        items = state.staffIds,
-                        viewMode = ItemListViewMode.Horizontal,
-                        itemContent = { id ->
-                            val staff = state.staff[id]
-                            LaunchedEffect(id) { viewModel.fetchPerson(id) }
-                            val role = staff?.attributes?.role?.name
-                            val person = staff?.relationships?.person?.data?.first()
-
-                            if (person != null) {
-                                PersonCard(person, subTitle = role, onClick = { onNavigateToItemDetail(person) })
-                            } else {
-                                ItemPlaceholder()
-                            }
-                        }
-                    )
-                }
-            }
             // Characters
             if (state.characterIds.isNotEmpty()) {
                 item { SectionHeader(title = "Characters", onSeeAllClick = { onNavigateToCharacterList(literature.id) }) }
@@ -179,6 +136,28 @@ fun LiteratureDetailScreen(
                             } else {
                                 ItemPlaceholder()
                             }
+                        }
+                    )
+                }
+            }
+            // Staff
+            if (state.staff.isNotEmpty()) {
+                item {
+                    SectionHeader(
+                        title = "Staff",
+                        onSeeAllClick = { onNavigateToStaffList(literature.id) })
+                }
+                item {
+                    ItemList(
+                        items = state.staff,
+                        viewMode = ItemListViewMode.Horizontal,
+                        itemContent = { staff ->
+                            val role = staff.attributes.role.name
+                            val person = staff.relationships.person.data.first()
+                            PersonCard(
+                                person,
+                                subTitle = role,
+                                onClick = { onNavigateToItemDetail(person) })
                         }
                     )
                 }
@@ -229,30 +208,9 @@ fun LiteratureDetailScreen(
                     )
                 }
             }
-            // Related Shows
-            if (state.relatedShows.isNotEmpty()) {
-                item { SectionHeader(title = "Related Shows", onSeeAllClick = { onNavigateToRelatedShowList(literature.id) }) }
-                item {
-                    ItemList(
-                        items = state.relatedShows,
-                        viewMode = ItemListViewMode.Horizontal,
-                        itemContent = { related ->
-                            val show = related.show
-                            related.attributes.relation.name
-                            AnimeCard(
-                                show,
-                                onClick = { onNavigateToItemDetail(show) },
-                                onStatusSelected = { newStatus ->
-                                    viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
-                                }
-                            )
-                        }
-                    )
-                }
-            }
             // Related Literatures
             if (state.relatedLiteratures.isNotEmpty()) {
-                item { SectionHeader(title = "Related Literatures", onSeeAllClick = { onNavigateToRelatedLiteratureList(literature.id) }) }
+                item { SectionHeader(title = "Related", onSeeAllClick = { onNavigateToRelatedLiteratureList(literature.id) }) }
                 item {
                     ItemList(
                         items = state.relatedLiteratures,
@@ -266,6 +224,28 @@ fun LiteratureDetailScreen(
                                 onClick = { onNavigateToItemDetail(lit) },
                                 onStatusSelected = { newStatus ->
                                     viewModel.updateLibraryStatus(lit.id, newStatus, ItemType.Literature, SectionType.RelatedLiteratures)
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+            // Related Shows
+            if (state.relatedShows.isNotEmpty()) {
+                item { SectionHeader(title = "Adaptations", onSeeAllClick = { onNavigateToRelatedShowList(literature.id) }) }
+                item {
+                    ItemList(
+                        items = state.relatedShows,
+                        viewMode = ItemListViewMode.Horizontal,
+                        itemContent = { related ->
+                            val show = related.show
+                            val relation = related.attributes.relation.name
+                            AnimeCard(
+                                show,
+                                topTitle = relation,
+                                onClick = { onNavigateToItemDetail(show) },
+                                onStatusSelected = { newStatus ->
+                                    viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show, SectionType.RelatedShows)
                                 }
                             )
                         }

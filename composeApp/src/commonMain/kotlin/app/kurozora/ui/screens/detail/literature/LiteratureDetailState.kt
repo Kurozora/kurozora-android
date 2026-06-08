@@ -15,8 +15,6 @@ import kurozorakit.data.models.studio.Studio
 
 data class LiteratureDetailState(
     val literature: Literature? = null,
-    val castIds: List<String> = emptyList(),
-    val cast: Map<String, Cast> = emptyMap(),
     val characterIds: List<String> = emptyList(),
     val characters: Map<String, Character> = emptyMap(),
     val peopleIds: List<String> = emptyList(),
@@ -26,8 +24,7 @@ data class LiteratureDetailState(
     val relatedGames: List<RelatedGame> = emptyList(),
     val songIds: List<String> = emptyList(),
     val songs: Map<String, Song> = emptyMap(),
-    val staffIds: List<String> = emptyList(),
-    val staff: Map<String, Staff> = emptyMap(),
+    val staff: List<Staff> = emptyList(),
     val studioIds: List<String> = emptyList(),
     val studios: Map<String, Studio> = emptyMap(),
     val moreByStudioIds: List<String> = emptyList(),

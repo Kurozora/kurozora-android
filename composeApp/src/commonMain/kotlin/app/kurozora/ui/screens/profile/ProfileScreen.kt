@@ -70,7 +70,7 @@ fun ProfileScreen(
     isCurrentUser: Boolean = false,
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
-    onNavigateToSettings: () -> Unit,
+    onNavigateToSettings: (User) -> Unit,
     onNavigateToItemDetail: (Any) -> Unit,
     onNavigateToAnimeLibraryList: (String) -> Unit,
     onNavigateToMangaLibraryList: (String) -> Unit,
@@ -111,7 +111,7 @@ fun ProfileScreen(
                 },
                 actions = {
                     if (isCurrentUser) {
-                        IconButton(onClick = { onNavigateToSettings() }) {
+                        IconButton(onClick = { onNavigateToSettings(userDetail) }) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
                                 contentDescription = "Settings",
@@ -265,9 +265,8 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        StatItem(
-                            "Achievements", user.relationships?.achievements?.data?.size
-                                ?: 0, onClick = { })
+                        StatItem("Reputation", userDetail.attributes.reputationCount, onClick = {  })
+                        StatItem("Achievements", user.relationships?.achievements?.data?.size ?: 0, onClick = {  })
                         StatItem("Following", userDetail.attributes.followingCount, onClick = { onNavigateToFollowingsList(user.id) })
                         StatItem("Followers", userDetail.attributes.followerCount, onClick = { onNavigateToFollowersList(user.id) })
                         StatItem("Reviews", userDetail.attributes.ratingsCount, onClick = { onNavigateToReviewList(user.id) })

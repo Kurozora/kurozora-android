@@ -34,7 +34,7 @@ class LiteratureDetailViewModel(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.literature().getLiterature(
                 litId, listOf(
-                    "cast", "characters", "related-shows", "related-games", "related-literatures", "staff", "studios"
+                    "characters", "related-shows", "related-games", "related-literatures", "staff", "studios"
                 ), true
             )
             val moreByStudioIds = kurozoraKit.literature().getMoreByStudio(litId)
@@ -47,14 +47,13 @@ class LiteratureDetailViewModel(
                 _state.update { it ->
                     it.copy(
                         literature = literature,
-                        castIds = relationships?.cast?.data?.map { it.id } ?: emptyList(),
                         characterIds = relationships?.characters?.data?.map { it.id }
                             ?: emptyList(),
                         relatedShows = relationships?.relatedShows?.data ?: emptyList(),
                         relatedGames = relationships?.relatedGames?.data ?: emptyList(),
                         relatedLiteratures = relationships?.relatedLiteratures?.data ?: emptyList(),
                         peopleIds = relationships?.people?.data?.map { it.id } ?: emptyList(),
-                        staffIds = relationships?.staff?.data?.map { it.id } ?: emptyList(),
+                        staff = relationships?.staff?.data ?: emptyList(),
                         studioIds = relationships?.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),
@@ -64,29 +63,6 @@ class LiteratureDetailViewModel(
                 }
             } else {
                 _state.update { it.copy(isLoading = false, errorMessage = result.toString()) }
-            }
-        }
-    }
-
-    /**
-     * Lazy load için cast fetch
-     */
-    fun fetchCast(id: String) {
-        if (_state.value.cast.containsKey(id)) return
-
-        viewModelScope.launch {
-            _state.update { it.copy(loadingItems = _state.value.loadingItems + id) }
-            val res = kurozoraKit.cast().getCast(id)
-            val cast: Cast? = (res as? Result.Success)?.data?.data?.firstOrNull()
-
-            if (cast != null) {
-                val updated = _state.value.cast.toMutableMap()
-                updated[id] = cast
-                _state.update {
-                    it.copy(cast = updated, loadingItems = it.loadingItems - id)
-                }
-            } else {
-                _state.update { it.copy(loadingItems = it.loadingItems - id) }
             }
         }
     }

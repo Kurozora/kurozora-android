@@ -23,6 +23,7 @@ class ItemListViewModel(
             items = items,
             isLoading = false
         )
+        println("Preloaded items: $items")
     }
 
     /**

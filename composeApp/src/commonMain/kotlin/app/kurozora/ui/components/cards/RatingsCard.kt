@@ -139,7 +139,7 @@ fun RatingsAndReviewsCard(
             contentPadding = PaddingValues(horizontal = 4.dp)
         ) {
             items(reviews) { review ->
-                ReviewCard(
+                ReviewContentOnly(
                     review = review,
                 )
             }

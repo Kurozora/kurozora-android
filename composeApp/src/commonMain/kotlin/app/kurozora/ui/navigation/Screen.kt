@@ -83,7 +83,19 @@ sealed class Screen(
     object Reminder : Screen("reminder", "Reminder")
     object AirSeason : Screen("airseason", "Air Season")
     object Schedule : Screen("schedule", "Schedule")
-    object Settings : Screen("settings", "Settings")
+    object Settings : Screen("settings", "Settings") {
+        fun createRoute(user: User): String {
+            val json = Json.encodeToString(user)
+            val encoded = json.encodeBase64()
+            return "settings?userJson=$encoded"
+        }
+    }
+
+    object RecapDetail : Screen("recapDetail", "Recap Detail") {
+        fun createRoute(year: String, month: String): String {
+            return "recapDetail?year=${year}&month=$month"
+        }
+    }
     object AnimeDetail : Screen("animeDetail", "Anime Detail") {
         fun createRoute(show: Show): String {
             val json = Json.encodeToString(show)
@@ -275,12 +287,6 @@ sealed class Screen(
     object LiteraturePeopleList : Screen("literaturePeopleList", "Literature People List") {
         fun createRoute(litId: String): String {
             return "literaturePeopleList?litId=$litId"
-        }
-    }
-
-    object LiteratureCastList : Screen("literatureCastList", "Literature Cast List") {
-        fun createRoute(litId: String): String {
-            return "literatureCastList?litId=$litId"
         }
     }
 

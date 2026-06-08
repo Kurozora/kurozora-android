@@ -23,6 +23,10 @@ import app.kurozora.ui.navigation.Screen
 import app.kurozora.ui.screens.welcome.WelcomeScreen
 import app.kurozora.ui.theme.KurozoraTheme
 import app.kurozora.ui.theme.ThemeController
+import coil3.ImageLoader
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.ktor.KtorNetworkFetcherFactory
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -47,6 +51,7 @@ fun MainScreen(
     MainContent()
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MainContent() {
     val windowSize = currentWindowAdaptiveInfo().windowSizeClass
@@ -106,6 +111,13 @@ fun MainContent() {
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             layoutType = navigationLayout
         ) {
+            setSingletonImageLoaderFactory { context ->
+                ImageLoader.Builder(context)
+                    .components {
+                        add(KtorNetworkFetcherFactory()) // Network desteğini buraya ekliyoruz
+                    }
+                    .build()
+            }
             AppNavHost(navController = navHostController, windowSize = windowSize)
         }
     }

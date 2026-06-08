@@ -106,6 +106,7 @@ fun EpisodeDetailScreen(
                         SectionHeader(title = "Up Next", showSeeAll = false)
                         val ep = state.nextEpisode!!
                         EpisodeCard(
+                            modifier = Modifier.fillMaxWidth(),
                             episode = ep,
                             onClick = { onNavigateToItemDetail(ep) },
                             onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(ep.id) })
@@ -122,6 +123,7 @@ fun EpisodeDetailScreen(
 
                                 if (episode != null) {
                                     EpisodeCard(
+                                        modifier = Modifier.fillMaxWidth(),
                                         episode = episode,
                                         onClick = { onNavigateToItemDetail(episode) },
                                         onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) })
@@ -143,7 +145,17 @@ fun EpisodeDetailScreen(
             ) {
                 item {
                     episode.toDetailData(windowWidth, state.reviews)?.let {
-                        DetailContent(it, windowWidth = windowWidth,)
+                        DetailContent(
+                            it,
+                            onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) },
+                            onRateSubmit = { rating, review ->
+                                viewModel.postReview(it.id,rating, review)
+                            },
+                            windowWidth = windowWidth,
+                            onNavigateToReviewList = { id ->
+                                onNavigateToReviewList(id)
+                            }
+                        )
                     }
                 }
 
@@ -152,6 +164,7 @@ fun EpisodeDetailScreen(
                         SectionHeader(title = "Up Next", showSeeAll = false)
                         val ep = state.nextEpisode!!
                         EpisodeCard(
+                            modifier = Modifier.fillMaxWidth(),
                             episode = ep,
                             onClick = { onNavigateToItemDetail(ep) },
                             onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(ep.id) }
@@ -181,6 +194,7 @@ fun EpisodeDetailScreen(
 
                                 if (episode != null) {
                                     EpisodeCard(
+                                        modifier = Modifier.fillMaxWidth(),
                                         episode = episode,
                                         onClick = { onNavigateToItemDetail(episode) },
                                         onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) }

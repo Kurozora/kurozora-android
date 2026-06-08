@@ -40,6 +40,7 @@ import app.kurozora.ui.components.cards.LiteratureCard
 import app.kurozora.ui.components.cards.PersonCard
 import app.kurozora.ui.components.cards.RecapCard
 import app.kurozora.ui.components.cards.ReviewCard
+import app.kurozora.ui.components.cards.ReviewContentOnly
 import app.kurozora.ui.components.cards.SeasonCard
 import app.kurozora.ui.components.cards.SongCard
 import app.kurozora.ui.components.cards.StudioCard
@@ -60,6 +61,9 @@ import kurozorakit.data.models.review.Review
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.show.cast.Cast
+import kurozorakit.data.models.show.related.RelatedGame
+import kurozorakit.data.models.show.related.RelatedLiterature
+import kurozorakit.data.models.show.related.RelatedShow
 import kurozorakit.data.models.song.Song
 import kurozorakit.data.models.staff.Staff
 import kurozorakit.data.models.studio.Studio
@@ -166,22 +170,26 @@ fun ItemListScreen(
                 // additional data
                 item {
                     when (itemType) {
-                        ItemType.Show -> {  }
-                        ItemType.Game -> {  }
-                        ItemType.Literature -> {  }
-                        ItemType.Character -> {  }
-                        ItemType.Episode -> {  }
-                        ItemType.Genre -> {  }
-                        ItemType.Theme -> {  }
-                        ItemType.Song -> {  }
-                        ItemType.Person -> {  }
-                        ItemType.Recap -> {  }
-                        ItemType.Studio -> {  }
-                        ItemType.Season -> {  }
-                        ItemType.Cast -> {  }
-                        ItemType.User -> {  }
-                        ItemType.Staff -> {  }
-                        ItemType.Review -> {  }
+//                        ItemType.Show -> {  }
+//                        ItemType.Game -> {  }
+//                        ItemType.Literature -> {  }
+//                        ItemType.Character -> {  }
+//                        ItemType.Episode -> {  }
+//                        ItemType.Genre -> {  }
+//                        ItemType.Theme -> {  }
+//                        ItemType.Song -> {  }
+//                        ItemType.Person -> {  }
+//                        ItemType.Recap -> {  }
+//                        ItemType.Studio -> {  }
+//                        ItemType.Season -> {  }
+//                        ItemType.Cast -> {  }
+//                        ItemType.User -> {  }
+//                        ItemType.Staff -> {  }
+//                        ItemType.Review -> {  }
+//                        ItemType.RelatedShow -> {}
+//                        ItemType.RelatedLiterature -> {}
+//                        ItemType.RelatedGame -> {}
+                        else -> {}
                     }
                 }
                 
@@ -227,6 +235,48 @@ fun ItemListScreen(
                                                 viewModel.updateLibraryStatus(itemId = it.id, newStatus, type = ItemType.Game)
                                             },
                                             modifier = Modifier.fillMaxWidth()
+                                        )
+                                    } ?: ItemPlaceholder()
+
+                                    ItemType.RelatedShow -> (item as? RelatedShow)?.let {
+                                        val show = it.show
+                                        val relation = it.attributes.relation.name
+                                        AnimeCard(
+                                            show,
+                                            topTitle = relation,
+                                            onClick = { onNavigateToItemDetail(show) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show,
+                                                )
+                                            }
+                                        )
+                                    } ?: ItemPlaceholder()
+
+                                    ItemType.RelatedLiterature -> (item as? RelatedLiterature)?.let {
+                                        val lit = it.literature
+                                        val relation = it.attributes.relation.name
+                                        LiteratureCard(
+                                            lit,
+                                            topTitle = relation,
+                                            onClick = { onNavigateToItemDetail(lit) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(lit.id, newStatus, ItemType.Literature,
+                                                )
+                                            }
+                                        )
+                                    } ?: ItemPlaceholder()
+
+                                    ItemType.RelatedGame -> (item as? RelatedGame)?.let {
+                                        val game = it.game
+                                        val relation = it.attributes.relation.name
+                                        GameCard(
+                                            game,
+                                            //topTitle = relation,
+                                            onClick = { onNavigateToItemDetail(game) },
+                                            onStatusSelected = { newStatus ->
+                                                viewModel.updateLibraryStatus(game.id, newStatus, ItemType.Show,
+                                                )
+                                            }
                                         )
                                     } ?: ItemPlaceholder()
 
@@ -277,9 +327,12 @@ fun ItemListScreen(
                                     } ?: ItemPlaceholder()
 
                                     ItemType.User -> (item as? User)?.let { user ->
-                                        UserCard(user, onClick = { onNavigateToItemDetail(user) }, onFollowButtonClick = {
-                                            viewModel.followUser(user.id)
-                                        })
+                                        UserCard(user,
+                                            onClick = { onNavigateToItemDetail(user) },
+                                            onFollowButtonClick = {
+                                                viewModel.followUser(user.id)
+                                            },
+                                            modifier = Modifier.fillMaxWidth())
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Staff -> (item as? Staff)?.let {
@@ -289,7 +342,31 @@ fun ItemListScreen(
                                     } ?: ItemPlaceholder()
 
                                     ItemType.Review -> (item as? Review)?.let { review ->
-                                        ReviewCard(review, badgeIcons = listOf(), modifier = Modifier.fillMaxWidth())
+                                        ReviewContentOnly(review, modifier = Modifier.fillMaxWidth())
+                                    }
+
+                                    ItemType.ReviewEntity -> (item as? Review)?.let { review ->
+                                        ReviewCard(
+                                            review = review,
+                                            onNavigateToItemDetail = onNavigateToItemDetail,
+                                            onStatusSelected = { newStatus ->
+                                                val relatedItemId = review.relationships?.shows?.data?.firstOrNull()?.id
+                                                    ?: review.relationships?.games?.data?.firstOrNull()?.id
+                                                    ?: review.relationships?.literatures?.data?.firstOrNull()?.id
+                                                    ?: return@ReviewCard
+                                                viewModel.updateLibraryStatus(
+                                                    itemId = relatedItemId,
+                                                    newStatus = newStatus,
+                                                    type = when {
+                                                        review.relationships?.shows != null -> ItemType.Show
+                                                        review.relationships?.games != null -> ItemType.Game
+                                                        review.relationships?.literatures != null -> ItemType.Literature
+                                                        else -> return@ReviewCard
+                                                    }
+                                                )
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                     } ?: ItemPlaceholder()
                                 }
                             }

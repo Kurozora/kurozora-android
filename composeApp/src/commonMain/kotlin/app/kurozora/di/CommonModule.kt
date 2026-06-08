@@ -20,9 +20,10 @@ import app.kurozora.ui.screens.favorite.FavoriteViewModel
 import app.kurozora.ui.screens.feed.FeedViewModel
 import app.kurozora.ui.screens.library.LibraryViewModel
 import app.kurozora.ui.screens.list.ItemListViewModel
-import app.kurozora.ui.screens.list.show.RelatedShowsViewModel
 import app.kurozora.ui.screens.main.MainViewModel
 import app.kurozora.ui.screens.profile.ProfileViewModel
+import app.kurozora.ui.screens.profile.settings.SettingsViewModel
+import app.kurozora.ui.screens.recap.RecapItemViewModel
 import app.kurozora.ui.screens.reminder.ReminderViewModel
 import app.kurozora.ui.screens.schedule.ScheduleViewModel
 import app.kurozora.ui.screens.search.SearchViewModel
@@ -96,7 +97,6 @@ fun commonModule() = module {
     viewModel { SongDetailViewModel(kurozoraKit = get()) }
     viewModel { ItemListViewModel(kurozoraKit = get()) }
     viewModel { SeasonDetailViewModel(kurozoraKit = get()) }
-    viewModel { RelatedShowsViewModel() }
     viewModel { AuthViewModel(kurozoraKit = get(), accountManager = get()) }
     viewModel { SearchViewModel(kurozoraKit = get()) }
     viewModel { ProfileViewModel(kurozoraKit = get()) }
@@ -104,6 +104,9 @@ fun commonModule() = module {
     viewModel { ReminderViewModel(kurozoraKit = get()) }
     viewModel { ScheduleViewModel(kurozoraKit = get()) }
     viewModel { AirSeasonViewModel(kurozoraKit = get()) }
+    viewModel { SettingsViewModel(kurozoraKit = get(), accountManager = get()) }
+    viewModel { RecapItemViewModel(kurozoraKit = get()) }
+
     viewModel { (filter: ShowFilter?) ->
         ShowFilterViewModel(filter)
     }

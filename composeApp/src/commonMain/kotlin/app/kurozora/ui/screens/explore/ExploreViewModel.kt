@@ -15,7 +15,7 @@ import kurozorakit.data.models.theme.Theme
 import kurozorakit.shared.Result
 
 enum class ItemType {
-    Show, Game, Literature, Character, Episode, Genre, Theme, Song, Person, Recap, Studio, Season, Cast, User, Staff, Review
+    Show, Game, Literature, Character, Episode, Genre, Theme, Song, Person, Recap, Studio, Season, Cast, User, Staff, Review, ReviewEntity, RelatedShow, RelatedLiterature, RelatedGame
 }
 
 class ExploreViewModel(
@@ -57,6 +57,15 @@ class ExploreViewModel(
                         categoryItems[category.id] = recapItems
                     }
 
+                    categories.forEach { category ->
+                        val showSongItems = category.relationships?.showSongs?.data
+                            ?.associateBy { it.id }
+                            ?.mapValues { it.value as Any }
+                            ?: emptyMap()
+
+                        categoryItems[category.id] = showSongItems
+                    }
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         categories = categories,
@@ -87,49 +96,6 @@ class ExploreViewModel(
         _uiState.value = _uiState.value.copy(theme = theme)
         fetchExplore(themeId = theme.id)
     }
-//    fun fetchItemDetail(categoryId: String, itemId: String, type: ItemType) {
-//        if (type == ItemType.Recap) return // 🔹 Recap için hiçbir şey çekme
-//
-//        val loadingKey = "${type.name}_$itemId" // 🔹 Benzersiz anahtar oluştur
-//
-//        if (_uiState.value.loadingItems.contains(loadingKey)) return
-//
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _uiState.value = _uiState.value.copy(
-//                loadingItems = _uiState.value.loadingItems + loadingKey
-//            )
-//
-//            val item: Any? = when (type) {
-//                ItemType.Show -> (kurozoraKit.show().getShow(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Game -> (kurozoraKit.game().getGame(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Literature -> (kurozoraKit.literature().getLiterature(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Character -> (kurozoraKit.character().getCharacter(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Episode -> (kurozoraKit.episode().getEpisode(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Genre -> (kurozoraKit.genre().getGenre(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Theme -> (kurozoraKit.theme().getTheme(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Song -> (kurozoraKit.song().getSong(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Person -> (kurozoraKit.people().getPerson(itemId) as? Result.Success)?.data?.data?.firstOrNull()
-//                ItemType.Recap -> null
-//                else -> null
-//            }
-//
-//            if (item != null) {
-//                val updatedCategoryItems = _uiState.value.categoryItems.toMutableMap()
-//                val currentItems = updatedCategoryItems[categoryId]?.toMutableMap() ?: mutableMapOf()
-//                currentItems[itemId] = item
-//                updatedCategoryItems[categoryId] = currentItems
-//
-//                _uiState.value = _uiState.value.copy(
-//                    categoryItems = updatedCategoryItems,
-//                    loadingItems = _uiState.value.loadingItems - loadingKey
-//                )
-//            } else {
-//                _uiState.value = _uiState.value.copy(
-//                    loadingItems = _uiState.value.loadingItems - loadingKey
-//                )
-//            }
-//        }
-//    }
     /**
      * Tek bir item için detay fetch et
      */
@@ -163,8 +129,8 @@ class ExploreViewModel(
                 ItemType.Theme -> (kurozoraKit.theme()
                     .getTheme(itemId) as? Result.Success)?.data?.data?.firstOrNull()
 
-                ItemType.Song -> (kurozoraKit.song()
-                    .getSong(itemId) as? Result.Success)?.data?.data?.firstOrNull()
+//                ItemType.Song -> (kurozoraKit.song()
+//                    .getSong(itemId) as? Result.Success)?.data?.data?.firstOrNull()
 
                 ItemType.Person -> (kurozoraKit.people()
                     .getPerson(itemId) as? Result.Success)?.data?.data?.firstOrNull()

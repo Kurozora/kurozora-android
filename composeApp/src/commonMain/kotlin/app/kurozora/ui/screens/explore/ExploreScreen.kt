@@ -292,8 +292,7 @@ fun ExploreScreen(
                                         is Person -> PersonCard(item, onClick = { onNavigateToItemDetail(item) })
                                         is Genre -> GenreCard(item, onClick = { viewModel.changeGenre(item) })
                                         is Theme -> ThemeCard(item, onClick = { viewModel.changeTheme(item) })
-                                        is Song -> SongCard(item, onClick = { onNavigateToItemDetail(item) })
-                                        is ShowSong -> SongCard(item.song, { onNavigateToItemDetail(item.song) })
+                                        is ShowSong -> SongCard(item.song, onClick = { onNavigateToItemDetail(item.song) })
                                         is Episode -> EpisodeCard(
                                             item,
                                             onClick = { onNavigateToItemDetail(item) },
@@ -302,7 +301,7 @@ fun ExploreScreen(
                                             }
                                         )
 
-                                        is Recap -> RecapCard(item, onClick = { /* ... */ })
+                                        is Recap -> RecapCard(item, onClick = { onNavigateToItemDetail(item) })
                                         null -> ItemPlaceholder(viewMode = MediaCardViewMode.List)
                                         else -> Text(item.toString())
                                     }

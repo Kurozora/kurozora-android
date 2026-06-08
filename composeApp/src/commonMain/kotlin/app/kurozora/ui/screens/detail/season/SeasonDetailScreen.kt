@@ -1,6 +1,7 @@
 package app.kurozora.ui.screens.detail.season
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -79,6 +80,7 @@ fun SeasonDetailScreen(
 
                             if (episode != null) {
                                 EpisodeCard(
+                                    modifier = Modifier.fillMaxWidth(),
                                     episode = episode,
                                     onClick = { onNavigateToEpisodeDetails(episode) },
                                     onMarkAsWatchedClick = { viewModel.markEpisodeAsWatched(episode.id) })

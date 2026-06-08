@@ -44,6 +44,7 @@ import app.kurozora.ui.screens.list.song.SongReviewListScreen
 import app.kurozora.ui.screens.list.studio.*
 import app.kurozora.ui.screens.profile.ProfileScreen
 import app.kurozora.ui.screens.profile.settings.SettingsScreen
+import app.kurozora.ui.screens.recap.RecapItemScreen
 import app.kurozora.ui.screens.reminder.ReminderScreen
 import app.kurozora.ui.screens.schedule.ScheduleScreen
 import app.kurozora.ui.screens.search.SearchScreen
@@ -56,6 +57,7 @@ import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.genre.Genre
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.person.Person
+import kurozorakit.data.models.recap.Recap
 import kurozorakit.data.models.season.Season
 import kurozorakit.data.models.show.Show
 import kurozorakit.data.models.song.Song
@@ -78,6 +80,7 @@ fun NavController.navigateToItemDetail(item: Any) {
         is User -> navigate(Screen.Profile.createRoute(item))
         is Genre -> navigate(Screen.Explore.createRoute(genre = item))
         is Theme -> navigate(Screen.Explore.createRoute(theme = item))
+        is Recap -> navigate(Screen.RecapDetail.createRoute(year = item.attributes.year.toString(), month = item.attributes.month.toString()))
     }
 }
 
@@ -211,6 +214,29 @@ fun AppNavHost(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
+
+        composable(
+            route = "${Screen.RecapDetail.route}?year={year}&month={month}",
+            arguments = listOf(
+                navArgument("year") { type = NavType.StringType; nullable = true },
+                navArgument("month") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val year = NavType.StringType.get(backStackEntry.arguments!!, "year")
+            val month = NavType.StringType.get(backStackEntry.arguments!!, "month")
+
+            RecapItemScreen(
+                year = year.orEmpty(),
+                month = month.orEmpty(),
+                windowWidth = windowSize.windowWidthSizeClass,
+                isLoggedIn = isLoggedIn,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
+            )
+        }
+
         composable(
             route = "${Screen.Profile.route}?userJson={userJson}",
             arguments = listOf(
@@ -262,8 +288,8 @@ fun AppNavHost(
                     onNavigateToFollowingsList = { id ->
                         navController.navigate(Screen.ProfileFollowingsList.createRoute(id))
                     },
-                    onNavigateToSettings = {
-                        navController.navigate("settings")
+                    onNavigateToSettings = { user ->
+                        navController.navigate(Screen.Settings.createRoute(user))
                     },
                     onNavigateToReviewList = { id ->
                         navController.navigate(Screen.ProfileReviewList.createRoute(id))
@@ -272,8 +298,17 @@ fun AppNavHost(
             }
         }
 
-        composable(Screen.Settings.route) {
+        composable(
+            route = "${Screen.Settings.route}?userJson={userJson}",
+            arguments = listOf(
+                navArgument("userJson") { type = NavType.StringType; nullable = true }
+            )
+        ) { backStackEntry ->
+            val encoded = NavType.StringType.get(backStackEntry.arguments!!, "userJson")
+            val userJson = encoded!!.decodeBase64String()
+
             SettingsScreen(
+                currentUser = Json.decodeFromString<User>(userJson),
                 windowWidth = windowSize.windowWidthSizeClass,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLoginScreen = {
@@ -376,9 +411,6 @@ fun AppNavHost(
                     },
                     onNavigateToPeopleList = { id ->
                         navController.navigate(Screen.LiteraturePeopleList.createRoute(id))
-                    },
-                    onNavigateToCastList = { id ->
-                        navController.navigate(Screen.LiteratureCastList.createRoute(id))
                     },
                     onNavigateToStaffList = { id ->
                         navController.navigate(Screen.LiteratureStaffList.createRoute(id))
@@ -847,23 +879,6 @@ fun AppNavHost(
         ) { backStackEntry ->
             val litId = NavType.StringType.get(backStackEntry.arguments!!, "litId")
             LiteraturePeopleListScreen(
-                litId = litId.orEmpty(),
-                onNavigateBack = { navController.popBackStack() },
-                windowWidth = windowSize.windowWidthSizeClass,
-                onNavigateToItemDetail = { item ->
-                    navController.navigateToItemDetail(item)
-                },
-            )
-        }
-        // LiteratureCastList
-        composable(
-            route = "${Screen.LiteratureCastList.route}?litId={litId}",
-            arguments = listOf(
-                navArgument("litId") { type = NavType.StringType; nullable = true }
-            )
-        ) { backStackEntry ->
-            val litId = NavType.StringType.get(backStackEntry.arguments!!, "litId")
-            LiteratureCastListScreen(
                 litId = litId.orEmpty(),
                 onNavigateBack = { navController.popBackStack() },
                 windowWidth = windowSize.windowWidthSizeClass,

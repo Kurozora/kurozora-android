@@ -23,7 +23,7 @@ fun ProfileReviewListScreen(
     ItemListScreen(
         title = "Reviews",
         preloadedItems = null,
-        itemType = ItemType.Review,
+        itemType = ItemType.ReviewEntity,
         fetcher = { nextUrl, limit ->
             var data: List<String> = emptyList()
             var next: String? = null
