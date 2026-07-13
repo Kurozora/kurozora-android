@@ -3,6 +3,10 @@ package app.kurozora.ui.screens.profile.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.kurozora.core.settings.AccountManager
+import app.kurozora.core.theme.DownloadedThemeManager
+import app.kurozora.core.theme.ThemeDownloader
+import app.kurozora.ui.theme.ThemeConfig
+import app.kurozora.ui.theme.ThemeController
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
 import io.github.vinceglb.filekit.readString
@@ -22,7 +26,9 @@ import kurozorakit.shared.logging.MemoryBufferSink
 class SettingsViewModel(
     private val kurozoraKit: KurozoraKit,
     private val accountManager: AccountManager,
-    private val memoryBufferSink: MemoryBufferSink
+    private val memoryBufferSink: MemoryBufferSink,
+    private val downloadedThemeManager: DownloadedThemeManager,
+    private val themeDownloader: ThemeDownloader,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -76,15 +82,61 @@ class SettingsViewModel(
             SettingsEvent.SaveTimezone -> saveField(UserUpdate(preferredTimezone = state.value.timezone))
             SettingsEvent.SaveTVRating -> saveField(UserUpdate(preferredTVRating = state.value.tvRating.rawValue))
             SettingsEvent.ImportLibrary -> { startLibraryImport() }
-            SettingsEvent.SavePassword -> { /* Şifre güncelleme Ktor isteği */ }
-            SettingsEvent.EnableTwoFactor -> { /* 2FA aktifleştirme */ }
-            SettingsEvent.LogoutOtherSessions -> { /* Session kapatma */ }
-            SettingsEvent.DeleteAccount -> { /* Hesap silme uyarı dialogu tetikleme */ }
+            SettingsEvent.SavePassword -> { }
+            SettingsEvent.EnableTwoFactor -> { }
+            SettingsEvent.LogoutOtherSessions -> { }
+            SettingsEvent.DeleteAccount -> { }
 
             SettingsEvent.ClearLogBuffer -> {
                 memoryBufferSink.clear()
             }
+
+            SettingsEvent.LoadThemeStore -> loadThemeStore()
+            is SettingsEvent.DownloadStoreTheme -> downloadStoreTheme(event.appTheme)
+            is SettingsEvent.DeleteDownloadedTheme -> deleteDownloadedTheme(event.themeId)
         }
+    }
+
+    private fun loadThemeStore() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingStoreThemes = true) }
+            kurozoraKit.themeStore().getThemeStore()
+                .onSuccess { response ->
+                    _state.update {
+                        it.copy(
+                            storeThemeItems = response.data,
+                            isLoadingStoreThemes = false,
+                        )
+                    }
+                }.onError { error ->
+                    KurozoraLogger.error("[SettingsViewModel]", "Failed to load theme store", error)
+                    _state.update { it.copy(isLoadingStoreThemes = false) }
+                }
+        }
+    }
+
+    private fun downloadStoreTheme(appTheme: kurozorakit.data.models.theme.app.AppTheme) {
+        viewModelScope.launch {
+            val customTheme = themeDownloader.download(
+                downloadLink = appTheme.attributes.downloadLink,
+                themeName = appTheme.attributes.name,
+                themeId = appTheme.id,
+            )
+            if (customTheme != null) {
+                downloadedThemeManager.addTheme(customTheme)
+                KurozoraLogger.debug("[SettingsViewModel]", "Downloaded theme: ${customTheme.name}")
+                val scopedSettings = accountManager.getScopedSettings()
+                scopedSettings?.let { settings ->
+                    settings.theme = "custom:${customTheme.id}"
+                }
+                ThemeController.setTheme(ThemeConfig.Custom(customTheme))
+            }
+        }
+    }
+
+    private fun deleteDownloadedTheme(themeId: String) {
+        downloadedThemeManager.removeTheme(themeId)
+        KurozoraLogger.debug("[SettingsViewModel]", "Deleted theme: $themeId")
     }
 
     private fun saveField(userUpdate: UserUpdate) {
@@ -94,7 +146,6 @@ class SettingsViewModel(
             kurozoraKit.user().updateMyProfile(update = userUpdate).
             onSuccess { res ->
                 val data = res.data
-                // Update state with server response
                 _state.update {
                     it.copy(
                         isSaving = false,
@@ -108,7 +159,6 @@ class SettingsViewModel(
                         successMessage = res.message
                     )
                 }
-                // Update the in-memory User object and persist updated userJson
                 val user = _state.value.user ?: return@onSuccess
                 data.username?.let { user.attributes.username = it }
                 data.biography?.let { user.attributes.biography = it }

@@ -1,7 +1,5 @@
 package app.kurozora.core.settings
 
-import app.kurozora.ui.theme.ThemeController
-import app.kurozora.ui.theme.ThemeType
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 import kurozorakit.shared.logging.KurozoraLogger
@@ -16,27 +14,9 @@ class AccountScopedSettings(
         const val APP_ICON_KEY = "app_icon"
     }
 
-    private val onSetCallbacks = mapOf(
-        THEME_KEY to { value: String ->
-            val newTheme = when (value.lowercase().trim()) {
-                "default" -> ThemeType.DEFAULT
-                "black" -> ThemeType.BLACK
-                "day" -> ThemeType.DAY
-                "grass" -> ThemeType.GRASS
-                "night" -> ThemeType.NIGHT
-                "sakura" -> ThemeType.SAKURA
-                "sky" -> ThemeType.SKY
-                else -> ThemeType.DEFAULT
-            }
-            ThemeController.setTheme(newTheme)
-            KurozoraLogger.debug("[AccountScopedSettings]", "Theme changed to: $newTheme")
-        }
-    )
-
     operator fun get(key: String): String? = settingsOrRoot.getStringOrNull(key(key))
     operator fun set(key: String, value: String) {
         settingsOrRoot[key(key)] = value
-        onSetCallbacks[key]?.invoke(value)
     }
 
     private fun key(k: String): String =

@@ -45,6 +45,7 @@ import kurozora.composeapp.generated.resources.Res
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.enums.TVRating
 import kurozorakit.data.models.misc.LibraryImport
+import kurozorakit.data.models.theme.app.AppTheme
 import kurozorakit.data.models.user.User
 import kurozorakit.shared.logging.LogLevel
 import kurozorakit.shared.logging.LogPacket
@@ -86,6 +87,9 @@ data class SettingsState(
     val isSaving: Boolean = false,
 
     val isTwoFactorEnabled: Boolean = false,
+
+    val storeThemeItems: List<AppTheme> = emptyList(),
+    val isLoadingStoreThemes: Boolean = false,
 )
 
 // Görseldeki her bir "Save" veya aksiyon butonu için ayrı bir Event
@@ -123,6 +127,11 @@ sealed interface SettingsEvent {
 
     // Advanced / Debug
     data object ClearLogBuffer : SettingsEvent
+
+    // Theme Store
+    data object LoadThemeStore : SettingsEvent
+    data class DownloadStoreTheme(val appTheme: AppTheme) : SettingsEvent
+    data class DeleteDownloadedTheme(val themeId: String) : SettingsEvent
 }
 
 data class SettingsCategory(
@@ -318,12 +327,18 @@ fun generateSettingsCategories(
                         onEvent(SettingsEvent.SaveTVRating)
                     },
                 ),
-                SettingItem.SingleSelectSetting(
+                SettingItem.CustomSetting(
                     key = AccountScopedSettings.THEME_KEY,
                     title = "Theme",
-                    subtitle = "Choose your app theme.",
-                    options = listOf("default", "black", " day", "grass", "night", "sakura", "sky"),
-                    selected = scopedSettings.theme
+                    subtitle = when {
+                        scopedSettings.theme.startsWith("custom:") -> "Custom theme"
+                        else -> scopedSettings.theme.replaceFirstChar { it.uppercase() }
+                    },
+                    isFullDialog = true,
+                    contentWithState = { currentState ->
+                        ThemeStoreContent(currentState)
+                    },
+                    content = null,
                 ),
                 SettingItem.SingleSelectSetting(
                     key = AccountScopedSettings.LANGUAGE_KEY,

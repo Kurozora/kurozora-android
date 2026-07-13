@@ -10,6 +10,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowWidthSizeClass
 import app.kurozora.core.settings.AccountManager
+import app.kurozora.core.theme.DownloadedThemeManager
 import app.kurozora.ui.navigation.AppNavHost
 import app.kurozora.ui.navigation.Screen
 import app.kurozora.ui.screens.welcome.WelcomeScreen
@@ -34,20 +36,19 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MainScreen(
     viewModel: MainViewModel = koinViewModel(),
 ) {
-//    val accountManager: AccountManager = koinInject()
-//    val settings = accountManager.getScopedSettings()
-//    settings?.let { ThemeController.initFromSettings(it) }
-//    val seenOnboarding by viewModel.seenOnboarding.collectAsState()
-//
-//    if (!seenOnboarding) {
-//        // Onboarding ekranı
-//        WelcomeScreen(
-//            onGetStarted = { viewModel.markOnboardingSeen() }
-//        )
-//    } else {
-//        // Normal ana ekran
-//        MainContent()
-//    }
+    val accountManager: AccountManager = koinInject()
+    val downloadedThemeManager: DownloadedThemeManager = koinInject()
+    val scopedSettings = accountManager.getScopedSettings()
+
+    LaunchedEffect(scopedSettings) {
+        if (scopedSettings != null) {
+            ThemeController.restoreFromSettings(
+                saved = scopedSettings.theme,
+                customThemeLookup = { id -> downloadedThemeManager.getTheme(id) }
+            )
+        }
+    }
+
     MainContent()
 }
 
@@ -69,7 +70,7 @@ fun MainContent() {
         val currentRoute = navBackStackEntry?.destination?.route
         fun isTopLevel(route: String?): Boolean {
             if (route == null) return false
-            val baseRoute = route.substringBefore("?") // parametreleri yok say
+            val baseRoute = route.substringBefore("?")
             return topLevelDestinations.any { it.route == baseRoute }
         }
 
@@ -114,7 +115,7 @@ fun MainContent() {
             setSingletonImageLoaderFactory { context ->
                 ImageLoader.Builder(context)
                     .components {
-                        add(KtorNetworkFetcherFactory()) // Network desteğini buraya ekliyoruz
+                        add(KtorNetworkFetcherFactory())
                     }
                     .build()
             }

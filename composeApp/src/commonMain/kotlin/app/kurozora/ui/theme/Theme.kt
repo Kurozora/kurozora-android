@@ -1,5 +1,6 @@
 package app.kurozora.ui.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
@@ -7,10 +8,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import app.kurozora.core.settings.AccountScopedSettings
 
 enum class ThemeType {
     DEFAULT, BLACK, DAY, GRASS, NIGHT, SAKURA, SKY
+}
+
+sealed class ThemeConfig {
+    data class BuiltIn(val type: ThemeType) : ThemeConfig()
+    data class Custom(val theme: CustomTheme) : ThemeConfig()
 }
 
 fun parseColor(hex: String): ULong {
@@ -29,7 +34,7 @@ fun Color.Companion.parse(hex: String): Color {
     val clean = hex.removePrefix("#")
     return try {
         when (clean.length) {
-            6 -> { // RRGGBB
+            6 -> {
                 val colorInt = clean.toLong(16).toInt()
                 Color(
                     red = ((colorInt shr 16) and 0xFF) / 255f,
@@ -39,7 +44,7 @@ fun Color.Companion.parse(hex: String): Color {
                 )
             }
 
-            8 -> { // AARRGGBB
+            8 -> {
                 val colorInt = clean.toLong(16).toInt()
                 Color(
                     red = ((colorInt shr 16) and 0xFF) / 255f,
@@ -49,14 +54,14 @@ fun Color.Companion.parse(hex: String): Color {
                 )
             }
 
-            else -> Color.Black // fallback
+            else -> Color.Black
         }
     } catch (e: Exception) {
         Color.Black
     }
 }
 
-private fun themeFromJson(
+fun themeFromJson(
     globalTint: String,
     globalBackground: String,
     tableViewBackground: String,
@@ -79,7 +84,7 @@ private fun themeFromJson(
     onTertiaryContainer = Color.parse(tintedButtonText)
 )
 
-private val themes = mapOf(
+private val builtInThemes = mapOf(
     ThemeType.DEFAULT to themeFromJson("#FF9300", "#353A50", "#454F63", "#AFAFAF", "#50577D", "#EEEEEE", "#EEEEEE", "#AFAFAF"),
     ThemeType.BLACK to themeFromJson("#FF9F0A", "#000000", "#0D0D0D", "#696969", "#0C0C0C", "#EEEEEE", "#A5A5A5", "#696969"),
     ThemeType.DAY to themeFromJson("#FF9300", "#FFFFFF", "#F6F6F6", "#9B9B9B", "#FFF3E3", "#FFFFFF", "#000000", "#979797"),
@@ -89,39 +94,65 @@ private val themes = mapOf(
     ThemeType.SKY to themeFromJson("#FF9300", "#CAF0FF", "#DFF6FF", "#A1C0CC", "#C4E1FF", "#FFFFFF", "#000010", "#799099")
 )
 
-object ThemeController {
-    var themeState = mutableStateOf(ThemeType.DEFAULT)
-        private set
-
-    fun setTheme(t: ThemeType) {
-        println("ThemeController currentTheme: ${themeState.value} tooooooo setTheme: $t")
-        themeState.value = t
-    }
-
-    fun initFromSettings(settings: AccountScopedSettings) {
-        val savedTheme = settings.theme
-        val themeType = when (savedTheme.lowercase().trim()) {
-            "default" -> ThemeType.DEFAULT
-            "black" -> ThemeType.BLACK
-            "day" -> ThemeType.DAY
-            "grass" -> ThemeType.GRASS
-            "night" -> ThemeType.NIGHT
-            "sakura" -> ThemeType.SAKURA
-            "sky" -> ThemeType.SKY
-            else -> ThemeType.DEFAULT
+fun colorSchemeFromConfig(config: ThemeConfig): ColorScheme {
+    return when (config) {
+        is ThemeConfig.BuiltIn -> builtInThemes[config.type] ?: builtInThemes[ThemeType.DEFAULT]!!
+        is ThemeConfig.Custom -> {
+            val t = config.theme
+            themeFromJson(
+                globalTint = t.globalTint,
+                globalBackground = t.globalBackground,
+                tableViewBackground = t.tableViewBackground,
+                borderColor = t.borderColor,
+                tintedBackground = t.tintedBackground,
+                tintedButtonText = t.tintedButtonText,
+                textColor = t.textColor,
+                subTextColor = t.subTextColor
+            )
         }
-        themeState.value = themeType
     }
 }
 
-val LocalThemeState = staticCompositionLocalOf { ThemeType.DEFAULT }
+object ThemeController {
+    var themeState = mutableStateOf<ThemeConfig>(ThemeConfig.BuiltIn(ThemeType.DEFAULT))
+        private set
+
+    fun setTheme(config: ThemeConfig) {
+        themeState.value = config
+    }
+
+    fun setTheme(t: ThemeType) {
+        themeState.value = ThemeConfig.BuiltIn(t)
+    }
+
+    fun restoreFromSettings(saved: String, customThemeLookup: (String) -> CustomTheme?) {
+        if (saved.startsWith("custom:")) {
+            val id = saved.removePrefix("custom:")
+            customThemeLookup(id)?.let { setTheme(ThemeConfig.Custom(it)) }
+        } else {
+            val type = when (saved.lowercase().trim()) {
+                "default" -> ThemeType.DEFAULT
+                "black" -> ThemeType.BLACK
+                "day" -> ThemeType.DAY
+                "grass" -> ThemeType.GRASS
+                "night" -> ThemeType.NIGHT
+                "sakura" -> ThemeType.SAKURA
+                "sky" -> ThemeType.SKY
+                else -> ThemeType.DEFAULT
+            }
+            setTheme(type)
+        }
+    }
+}
+
+val LocalThemeConfig = staticCompositionLocalOf<ThemeConfig> { ThemeConfig.BuiltIn(ThemeType.DEFAULT) }
 
 @Composable
 fun KurozoraTheme(content: @Composable () -> Unit) {
-    val currentTheme = ThemeController.themeState.value
-    val colorScheme = themes[currentTheme] ?: themes[ThemeType.DEFAULT]!!
+    val currentConfig = ThemeController.themeState.value
+    val colorScheme = colorSchemeFromConfig(currentConfig)
 
-    CompositionLocalProvider(LocalThemeState provides currentTheme) {
+    CompositionLocalProvider(LocalThemeConfig provides currentConfig) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
@@ -129,4 +160,3 @@ fun KurozoraTheme(content: @Composable () -> Unit) {
         )
     }
 }
-

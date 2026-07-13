@@ -3,6 +3,8 @@ package app.kurozora.di
 import app.kurozora.BuildKonfig
 import app.kurozora.core.settings.AccountManager
 import app.kurozora.core.settings.SettingsManager
+import app.kurozora.core.theme.DownloadedThemeManager
+import app.kurozora.core.theme.ThemeDownloader
 import app.kurozora.getPlatform
 import app.kurozora.ui.screens.airseason.AirSeasonViewModel
 import app.kurozora.ui.screens.auth.AuthViewModel
@@ -89,6 +91,8 @@ fun commonModule() = module {
     single<Settings> { Settings() }
     single { SettingsManager(get()) }
     single { AccountManager(get()) }
+    single { DownloadedThemeManager(get()) }
+    single { ThemeDownloader(get()) }
 
     viewModel { MainViewModel(kit = get(), accountManager = get()) }
     viewModel { ExploreViewModel(kurozoraKit = get()) }
@@ -111,7 +115,7 @@ fun commonModule() = module {
     viewModel { ReminderViewModel(kurozoraKit = get()) }
     viewModel { ScheduleViewModel(kurozoraKit = get()) }
     viewModel { AirSeasonViewModel(kurozoraKit = get()) }
-    viewModel { SettingsViewModel(kurozoraKit = get(), accountManager = get(), memoryBufferSink = get()) }
+    viewModel { SettingsViewModel(kurozoraKit = get(), accountManager = get(), memoryBufferSink = get(), downloadedThemeManager = get(), themeDownloader = get()) }
     viewModel { RecapItemViewModel(kurozoraKit = get()) }
 
     viewModel { (filter: ShowFilter?) ->
