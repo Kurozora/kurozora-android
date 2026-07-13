@@ -368,7 +368,7 @@ fun Literature?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Re
                         subtitle = ""
                     )
                 },
-                lit.attributes.languages.takeIf { it.isNotEmpty() }?.let { langs ->
+                lit.attributes.languages.takeUnless { it.isNullOrEmpty() }?.let { langs ->
                     InfoCard(
                         title = "Languages",
                         value = langs.joinToString(", ") { lang -> lang.name },

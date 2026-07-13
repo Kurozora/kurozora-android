@@ -37,7 +37,7 @@ class ExploreViewModel(
 
             try {
                 val exploreResult = kurozoraKit.explore()
-                    .getExplore(genreId = genreId, themeId = themeId, forceRefresh = forceRefresh)
+                    .getExplore(genreId = genreId, themeId = themeId)
 
                 if (exploreResult is Result.Success) {
                     val categories = exploreResult.data.data

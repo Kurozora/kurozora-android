@@ -38,7 +38,7 @@ class GameDetailViewModel(
             val result = kurozoraKit.game().getGame(
                 gameId, listOf(
                     "cast", "characters", "related-shows", "related-games", "related-literatures", "songs", "staff", "studios"
-                ), true
+                ),
             )
             val moreByStudioIds = kurozoraKit.game().getMoreByStudio(gameId)
             val reviews = kurozoraKit.game().getGameReviews(gameId)

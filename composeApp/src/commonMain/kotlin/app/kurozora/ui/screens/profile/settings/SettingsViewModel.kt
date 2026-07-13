@@ -85,7 +85,7 @@ class SettingsViewModel(
             onSuccess { res ->
                 println("res: $res")
                 accountManager.updateActiveAccount(profileUrl = res.data.profileImageURL ?: "")
-                _state.update { it.copy(isSaving = false, profileImageUrl = res.data.profileImageURL, bannerImageUrl = res.data.bannerImageUrl, successMessage = res.message) }
+                _state.update { it.copy(isSaving = false, profileImageUrl = res.data.profileImageURL, bannerImageUrl = res.data.bannerImageURL, successMessage = res.message) }
             }.onError { error ->
                 println("$userUpdate failed to save.")
                 _state.update { it.copy(isSaving = false) }

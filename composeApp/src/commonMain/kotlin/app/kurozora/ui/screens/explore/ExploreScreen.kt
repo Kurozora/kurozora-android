@@ -259,7 +259,7 @@ fun ExploreScreen(
                                                     item
                                                         .attributes
                                                         .nextBroadcastAt
-                                                        ?.let { Instant.fromEpochSeconds(it).toReadableDate() }
+                                                        ?.let { it.toReadableDate() }
                                                 } else null
                                             AnimeCard(
                                                 show = item,

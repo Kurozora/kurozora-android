@@ -459,14 +459,14 @@ fun Show?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>)
                 show.attributes.nextBroadcastAt?.let {
                     InfoCard(
                         title = "Broadcast",
-                        value = Instant.fromEpochSeconds(it).toReadableDate(),
+                        value = it.toReadableDate(),
                         subtitle = ""
                     )
                 },
                 show.attributes.airTime?.let {
                     InfoCard(
                         title = "Aired",
-                        value = it,
+                        value = it.toReadableDate(),
                         subtitle = ""
                     )
                 },

@@ -51,7 +51,7 @@ class ShowDetailViewModel(
                 relationships = listOf(
                     "cast", "characters", "related-shows", "related-games", "related-literatures", "seasons", "songs", "staff", "studios"
                 ),
-                forceRefresh = true
+                //forceRefresh = true
             )
             val moreByStudioIds = kurozoraKit.show().getMoreByStudio(showId)
             val reviews = kurozoraKit.show().getShowReviews(showId)

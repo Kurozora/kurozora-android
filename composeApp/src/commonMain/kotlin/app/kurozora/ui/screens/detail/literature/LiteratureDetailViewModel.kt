@@ -35,7 +35,7 @@ class LiteratureDetailViewModel(
             val result = kurozoraKit.literature().getLiterature(
                 litId, listOf(
                     "characters", "related-shows", "related-games", "related-literatures", "staff", "studios"
-                ), true
+                ),
             )
             val moreByStudioIds = kurozoraKit.literature().getMoreByStudio(litId)
             val reviews = kurozoraKit.literature().getLiteratureReviews(litId)
@@ -53,7 +53,7 @@ class LiteratureDetailViewModel(
                         relatedGames = relationships?.relatedGames?.data ?: emptyList(),
                         relatedLiteratures = relationships?.relatedLiteratures?.data ?: emptyList(),
                         peopleIds = relationships?.people?.data?.map { it.id } ?: emptyList(),
-                        staff = relationships?.staff?.data ?: emptyList(),
+                        staff = emptyList(),
                         studioIds = relationships?.studios?.data?.map { it.id } ?: emptyList(),
                         moreByStudioIds = moreByStudioIds.getOrNull()?.data?.map { it.id }
                             .orEmpty(),

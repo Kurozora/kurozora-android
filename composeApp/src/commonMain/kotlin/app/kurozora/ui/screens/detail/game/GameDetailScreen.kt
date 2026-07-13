@@ -373,7 +373,7 @@ fun Game?.toDetailData(windowWidth: WindowWidthSizeClass, reviews: List<Review>)
                         subtitle = ""
                     )
                 },
-                game.attributes.languages.takeIf { it.isNotEmpty() }?.let { langs ->
+                game.attributes.languages.takeUnless { it.isNullOrEmpty() }?.let { langs ->
                     InfoCard(
                         title = "Languages",
                         value = langs.joinToString(", ") { lang -> lang.name },
