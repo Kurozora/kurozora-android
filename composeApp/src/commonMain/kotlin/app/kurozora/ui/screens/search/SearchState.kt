@@ -33,6 +33,7 @@ data class SearchState(
         KKSearchType.users,
     ),
     val activeType: KKSearchType? = null,
+    val selectedTabType: KKSearchType? = null,
     val activeFilter: Filterable? = null,
     val filter: KKSearchFilter? = null,
     val mediaCard: MediaCardViewMode = MediaCardViewMode.List,

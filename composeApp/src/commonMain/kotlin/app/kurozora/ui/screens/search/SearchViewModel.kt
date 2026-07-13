@@ -84,29 +84,29 @@ class SearchViewModel(
         }
     }
 
-    /** 🔍 Normal arama — tüm typeları arar */
+    /** 🔍 Normal arama — context-aware: preserves activeType if set (from browse card) */
     fun search(query: String) {
+        val currentActiveType = _state.value.activeType
         _state.update {
             it.copy(
                 query = query,
                 isLoading = query.isNotEmpty(),
-                errorMessage = null
+                errorMessage = null,
             )
         }
         if (query.isEmpty()) {
             clearSearch()
-            fetchSuggestions(query) // Boş query için suggestions çek
             return
         }
-        // 🆕 Seçili typelara göre arama yap
-        val selectedTypesList = _state.value.selectedTypes.toList()
-        if (selectedTypesList.isNotEmpty()) {
-            fetchSuggestions(query)
-            performSearch(query, selectedTypesList)
+        if (currentActiveType != null) {
+            performSearch(query, listOf(currentActiveType))
         } else {
-            // Hiçbir tip seçilmemişse tüm tiplerde ara
-            fetchSuggestions(query)
-            performSearch(query, allTypes())
+            val selectedTypesList = _state.value.selectedTypes.toList()
+            if (selectedTypesList.isNotEmpty()) {
+                performSearch(query, selectedTypesList)
+            } else {
+                performSearch(query, allTypes())
+            }
         }
     }
 
@@ -132,10 +132,10 @@ class SearchViewModel(
                 songIds = emptyList(),
                 studioIds = emptyList(),
                 userIds = emptyList(),
-                isLoading = false
+                isLoading = false,
+                activeType = null
             )
         }
-        fetchSuggestions("") // Boş query suggestions'ları çek
     }
 
     /** 🔍 Sadece belirli type’a göre arama */
@@ -148,7 +148,9 @@ class SearchViewModel(
     fun clearActiveType() {
         val q = _state.value.query
         _state.update { it.copy(activeType = null) }
-        performSearch(q, allTypes())
+        if (q.isNotEmpty()) {
+            performSearch(q, allTypes())
+        }
     }
 
     fun toggleType(type: KKSearchType) {
@@ -186,29 +188,28 @@ class SearchViewModel(
                 query = query,
                 filter = activeFilter
             ).onSuccess { res ->
-                _state.update {
-                    it.copy(
+                _state.update { current ->
+                    current.copy(
                         isLoading = false,
-                        characterIds = if (types.contains(KKSearchType.characters)) res.data.characters?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        episodeIds = if (types.contains(KKSearchType.episodes)) res.data.episodes?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        gameIds = if (types.contains(KKSearchType.games)) res.data.games?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        showIds = if (types.contains(KKSearchType.shows)) res.data.shows?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        literatureIds = if (types.contains(KKSearchType.literatures)) res.data.literatures?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        peopleIds = if (types.contains(KKSearchType.people)) res.data.people?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        //seasonIds = if (types.contains(KKSearchType.seasons)) res.data.seasons?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        songIds = if (types.contains(KKSearchType.songs)) res.data.songs?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        studioIds = if (types.contains(KKSearchType.studios)) res.data.studios?.data?.map { it.id } ?: emptyList() else emptyList(),
-                        userIds = if (types.contains(KKSearchType.users)) res.data.users?.data?.map { it.id } ?: emptyList() else emptyList(),
+                        characterIds = if (types.contains(KKSearchType.characters)) res.data.characters?.data?.map { it.id } ?: emptyList() else current.characterIds,
+                        episodeIds = if (types.contains(KKSearchType.episodes)) res.data.episodes?.data?.map { it.id } ?: emptyList() else current.episodeIds,
+                        gameIds = if (types.contains(KKSearchType.games)) res.data.games?.data?.map { it.id } ?: emptyList() else current.gameIds,
+                        showIds = if (types.contains(KKSearchType.shows)) res.data.shows?.data?.map { it.id } ?: emptyList() else current.showIds,
+                        literatureIds = if (types.contains(KKSearchType.literatures)) res.data.literatures?.data?.map { it.id } ?: emptyList() else current.literatureIds,
+                        peopleIds = if (types.contains(KKSearchType.people)) res.data.people?.data?.map { it.id } ?: emptyList() else current.peopleIds,
+                        songIds = if (types.contains(KKSearchType.songs)) res.data.songs?.data?.map { it.id } ?: emptyList() else current.songIds,
+                        studioIds = if (types.contains(KKSearchType.studios)) res.data.studios?.data?.map { it.id } ?: emptyList() else current.studioIds,
+                        userIds = if (types.contains(KKSearchType.users)) res.data.users?.data?.map { it.id } ?: emptyList() else current.userIds,
                         // ----------------------------------------------
-                        characterNext = res.data.characters?.next,
-                        episodeNext = res.data.episodes?.next,
-                        gameNext = res.data.games?.next,
-                        literatureNext = res.data.literatures?.next,
-                        showNext = res.data.shows?.next,
-                        peopleNext = res.data.people?.next,
-                        songNext = res.data.songs?.next,
-                        studioNext = res.data.studios?.next,
-                        userNext = res.data.users?.next,
+                        characterNext = if (types.contains(KKSearchType.characters)) res.data.characters?.next else current.characterNext,
+                        episodeNext = if (types.contains(KKSearchType.episodes)) res.data.episodes?.next else current.episodeNext,
+                        gameNext = if (types.contains(KKSearchType.games)) res.data.games?.next else current.gameNext,
+                        literatureNext = if (types.contains(KKSearchType.literatures)) res.data.literatures?.next else current.literatureNext,
+                        showNext = if (types.contains(KKSearchType.shows)) res.data.shows?.next else current.showNext,
+                        peopleNext = if (types.contains(KKSearchType.people)) res.data.people?.next else current.peopleNext,
+                        songNext = if (types.contains(KKSearchType.songs)) res.data.songs?.next else current.songNext,
+                        studioNext = if (types.contains(KKSearchType.studios)) res.data.studios?.next else current.studioNext,
+                        userNext = if (types.contains(KKSearchType.users)) res.data.users?.next else current.userNext,
                     )
                 }
             }.onError { error ->
@@ -219,6 +220,10 @@ class SearchViewModel(
 
     fun setActiveType(type: KKSearchType) {
         _state.update { it.copy(activeType = type) }
+    }
+
+    fun setSelectedTabType(type: KKSearchType) {
+        _state.update { it.copy(selectedTabType = type) }
     }
 
     fun updateFilter(filter: Filterable) {
@@ -233,18 +238,35 @@ class SearchViewModel(
             is SongFilter -> KKSearchFilter.Song(filter)
             else -> KKSearchFilter.Show(filter as ShowFilter)
         }
-        println(filter)
-        _state.update { it.copy(filter = f) }
+        _state.update { it.copy(activeFilter = filter, filter = f) }
     }
 
     fun applyFilter() {
         val current = _state.value
         val query = current.query
         val type = current.activeType
-        if (type != null) {
-            performSearch(query, listOf(type), current.filter)
+
+        val types: List<KKSearchType> = if (type != null) {
+            listOf(type)
         } else {
-            //performSearch(query, allTypes(), current.activeFilter)
+            val filterType = current.filter?.let { f ->
+                when (f) {
+                    is KKSearchFilter.Show -> KKSearchType.shows
+                    is KKSearchFilter.Literature -> KKSearchType.literatures
+                    is KKSearchFilter.Character -> KKSearchType.characters
+                    is KKSearchFilter.Episode -> KKSearchType.episodes
+                    is KKSearchFilter.Game -> KKSearchType.games
+                    is KKSearchFilter.Person -> KKSearchType.people
+                    is KKSearchFilter.Song -> KKSearchType.songs
+                    is KKSearchFilter.Studio -> KKSearchType.studios
+                    else -> null
+                }
+            }
+            if (filterType != null) listOfNotNull(filterType) else current.selectedTypes.toList()
+        }
+
+        if (types.isNotEmpty()) {
+            performSearch(query, types, current.filter)
         }
     }
 

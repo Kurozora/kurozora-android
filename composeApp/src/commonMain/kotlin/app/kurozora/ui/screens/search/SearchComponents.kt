@@ -97,17 +97,17 @@ fun FilterBottomSheet(
         when (selectedTab) {
             0 -> FilterTabContent(activeType, activeFilter, onFilterChange)
             1 -> SortTabContent(
-                type = activeType!!,
+                type = activeType,
                 selectedSortType = sortType,
                 selectedOption = sortOption,
                 applySort = applySort
             )
             2 -> ViewTabContent(
-                activeType!!,
-                mediaCard,
-                onCardViewModeChange,
-                columnCount,
-                onColumnCountChange,
+                type = activeType,
+                cardViewMode = mediaCard,
+                onCardViewModeChange = onCardViewModeChange,
+                columnCount = columnCount,
+                onColumnCountChange = onColumnCountChange,
             )
         }
     }
@@ -133,11 +133,18 @@ fun FilterTabContent(
 
 @Composable
 fun SortTabContent(
-    type: KKSearchType,
+    type: KKSearchType?,
     selectedSortType: KKLibrary.SortType,
     selectedOption: KKLibrary.Option,
     applySort: (KKLibrary.SortType, KKLibrary.Option) -> Unit,
 ) {
+    if (type == null) {
+        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+            Text("No type selected for sorting.", style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -271,12 +278,19 @@ fun iconForSort(sortType: KKLibrary.SortType, option: KKLibrary.Option): ImageVe
 
 @Composable
 fun ViewTabContent(
-    type: KKSearchType,
+    type: KKSearchType?,
     cardViewMode: MediaCardViewMode,
     onCardViewModeChange: (MediaCardViewMode) -> Unit,
     columnCount: Int,
     onColumnCountChange: (Int) -> Unit,
 ) {
+    if (type == null) {
+        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+            Text("No type selected for view settings.", style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
+
     val allowedModes = listOf(
         MediaCardViewMode.List,
         MediaCardViewMode.Compact,

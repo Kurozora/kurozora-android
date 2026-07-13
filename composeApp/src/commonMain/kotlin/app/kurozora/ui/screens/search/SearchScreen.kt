@@ -132,23 +132,32 @@ fun SearchScreen(
         )
     }
 
-    // Suggestions geldiğinde active'i true yap
-    LaunchedEffect(state.suggestions) {
-        if (state.suggestions.isNotEmpty() && query.isNotEmpty()) {
-            active = true
+    // Sync local query with state when it changes externally (e.g. from browse type click)
+    LaunchedEffect(state.query) {
+        if (state.query != query) {
+            query = state.query
         }
     }
 
     // Debounce search
     LaunchedEffect(query) {
-        if (query != state.query) {
-            delay(500)
-            viewModel.search(query)
-        } else if (query.isEmpty()) {
-            viewModel.fetchSuggestions("")
-        } else {
-            viewModel.fetchSuggestions(query)
+        if (query.isEmpty()) {
+            // Only clear if not browsing by type
+            if (state.activeType == null) {
+                viewModel.search("")
+            }
+            return@LaunchedEffect
         }
+
+        delay(500)
+        viewModel.search(query)
+    }
+
+    // Fetch suggestions separately (only when SearchBar is active / user is typing)
+    LaunchedEffect(query) {
+        if (query.length < 2) return@LaunchedEffect
+        delay(300)
+        viewModel.fetchSuggestions(query)
     }
 
     Scaffold(
@@ -201,13 +210,7 @@ fun SearchScreen(
                     active = false
                 },
                 selectedTypes = state.selectedTypes,
-                onToggleType = { type ->
-                    viewModel.toggleType(type)
-                    // Toggle sonrası mevcut query ile yeniden ara
-                    if (query.isNotEmpty()) {
-                        viewModel.search(query)
-                    }
-                }
+                onToggleType = { viewModel.toggleType(it) }
             )
         }
     ) { innerPadding ->
@@ -217,19 +220,26 @@ fun SearchScreen(
                 .padding(innerPadding)
         ) {
             when {
-                state.isLoading && query.isNotEmpty() -> {
+                state.isLoading && (query.isNotEmpty() || state.activeType != null) -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
-                state.errorMessage != null && query.isNotEmpty() -> {
+                state.errorMessage != null && (query.isNotEmpty() || state.activeType != null) -> {
                     ErrorState(
                         message = state.errorMessage!!,
-                        onRetry = { viewModel.search(query) }
+                        onRetry = {
+                            val type = state.activeType
+                            if (type != null) {
+                                viewModel.searchByType(type, query)
+                            } else {
+                                viewModel.search(query)
+                            }
+                        }
                     )
                 }
 
-                state.activeType == null -> {
-                    // Browse content - no search query
+                state.activeType == null && query.isEmpty() -> {
+                    // Browse content - no active type and no query
                     BrowseContent(
                         browseTypes = browseTypes,
                         onTypeClick = { type ->
@@ -255,7 +265,7 @@ fun SearchScreen(
     if (showFilterSheet) {
         ModalBottomSheet(onDismissRequest = { showFilterSheet = false }) {
             FilterBottomSheet(
-                activeType = state.activeType,
+                activeType = state.activeType ?: state.selectedTabType,
                 activeFilter = state.activeFilter,
                 onFilterChange = viewModel::updateFilter,
                 onApply = {
@@ -307,8 +317,8 @@ fun BottomSearchBar(
                     leadingIcon = {
                         if (active) {
                             IconButton(onClick = {
+                                onClear()
                                 onActiveChange(false)
-                                //onClear()
                             }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                             }
@@ -317,8 +327,11 @@ fun BottomSearchBar(
                         }
                     },
                     trailingIcon = {
-                        if (query.isNotEmpty() && !active) {
-                            IconButton(onClick = onClear) {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = {
+                                onClear()
+                                onActiveChange(false)
+                            }) {
                                 Icon(Icons.Default.Close, contentDescription = "Clear")
                             }
                         }
@@ -630,8 +643,12 @@ fun SearchResultsContent(
 ) {
     val hasResults = state.hasResults()
 
-    if (!hasResults && state.query.isNotEmpty() && !state.isLoading) {
-        EmptySearchResult(query = state.query)
+    if (!hasResults && !state.isLoading && (state.query.isNotEmpty() || state.activeType != null)) {
+        if (state.query.isNotEmpty()) {
+            EmptySearchResult(query = state.query)
+        } else {
+            EmptySearchResult(query = state.activeType?.displayName() ?: "")
+        }
         return
     }
 
@@ -652,6 +669,14 @@ fun SearchResultsContent(
     if (availableTypes.isNotEmpty()) {
         var selectedTabIndex by remember { mutableStateOf(0) }
         val selectedType = availableTypes.getOrNull(selectedTabIndex)
+
+        // Sync the initial tab type to state
+        LaunchedEffect(availableTypes) {
+            val first = availableTypes.firstOrNull()
+            if (first != null && state.selectedTabType == null) {
+                viewModel.setSelectedTabType(first)
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -676,8 +701,7 @@ fun SearchResultsContent(
                         selected = selectedTabIndex == index,
                         onClick = {
                             selectedTabIndex = index
-                            // 🆕 Tab'a tıklandığında activeType'ı güncelle
-                            //selectedType?.let { viewModel.setActiveType(it) }
+                            viewModel.setSelectedTabType(type)
                         },
                         text = {
                             Text(
@@ -695,9 +719,9 @@ fun SearchResultsContent(
             // 🆕 Seçili type'a göre içerik göster - filter chips de göster
             when (selectedType) {
                 KKSearchType.shows -> {
-                    // Filter chips - sadece shows için
                     MediaTypeFilterChips(
                         searchType = KKSearchType.shows,
+                        activeFilter = state.activeFilter,
                         updateFilter = viewModel::updateFilter,
                         applyFilter = viewModel::applyFilter
                     )
@@ -727,6 +751,7 @@ fun SearchResultsContent(
                 KKSearchType.literatures -> {
                     MediaTypeFilterChips(
                         searchType = KKSearchType.literatures,
+                        activeFilter = state.activeFilter,
                         updateFilter = viewModel::updateFilter,
                         applyFilter = viewModel::applyFilter
                     )
@@ -756,6 +781,7 @@ fun SearchResultsContent(
                 KKSearchType.games -> {
                     MediaTypeFilterChips(
                         searchType = KKSearchType.games,
+                        activeFilter = state.activeFilter,
                         updateFilter = viewModel::updateFilter,
                         applyFilter = viewModel::applyFilter
                     )
@@ -959,6 +985,7 @@ fun EmptySearchResult(query: String) {
 @Composable
 fun MediaTypeFilterChips(
     searchType: KKSearchType,
+    activeFilter: Filterable?,
     updateFilter: (Filterable) -> Unit,
     applyFilter: () -> Unit,
 ) {
@@ -969,7 +996,30 @@ fun MediaTypeFilterChips(
         KKSearchType.studios -> StudioType.allCases.toList()
         else -> emptyList()
     }
-    var selectedType by remember { mutableStateOf<Enum<*>?>(null) }
+
+    val initialType = remember(activeFilter, searchType) {
+        when {
+            searchType == KKSearchType.shows && activeFilter is ShowFilter ->
+                activeFilter.mediaType?.include?.let { raw ->
+                    ShowType.allCases.find { it.rawValue.toString() == raw }
+                }
+            searchType == KKSearchType.literatures && activeFilter is LiteratureFilter ->
+                activeFilter.mediaType?.include?.let { raw ->
+                    LiteratureType.allCases.find { it.rawValue.toString() == raw }
+                }
+            searchType == KKSearchType.games && activeFilter is GameFilter ->
+                activeFilter.mediaType?.include?.let { raw ->
+                    GameType.allCases.find { it.rawValue.toString() == raw }
+                }
+            searchType == KKSearchType.studios && activeFilter is StudioFilter ->
+                activeFilter.type?.let { raw ->
+                    StudioType.allCases.find { it.rawValue.toString() == raw }
+                }
+            else -> null
+        }
+    }
+
+    var selectedType by remember(initialType) { mutableStateOf(initialType) }
 
     if (mediaTypes.isNotEmpty()) {
         LazyRow(

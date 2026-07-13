@@ -295,168 +295,205 @@ fun LibraryScreen(
                 }
 
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        var columnCount = when (windowWidth) {
-                            WindowWidthSizeClass.COMPACT -> 1   // 📱 Telefon
-                            WindowWidthSizeClass.MEDIUM -> 3    // 💻 Küçük tablet
-                            WindowWidthSizeClass.EXPANDED -> 4  // 🖥️ Büyük ekran
-                            else -> 3
+                    val isEmpty = if (state.query.isNotBlank()) {
+                        when (state.selectedTab) {
+                            LibraryTab.Animes -> state.showIds.isEmpty()
+                            LibraryTab.Mangas -> state.literatureIds.isEmpty()
+                            LibraryTab.Games  -> state.gameIds.isEmpty()
                         }
-                        // People / Characters için özel ayarlama
-                        if (state.activeType == KKSearchType.people || state.activeType == KKSearchType.characters) {
-                            columnCount = when (windowWidth) {
-                                WindowWidthSizeClass.COMPACT -> 3   // Telefon → 3
-                                WindowWidthSizeClass.MEDIUM -> 4    // Tablet → daha geniş olabilir
-                                WindowWidthSizeClass.EXPANDED -> 6  // Desktop → daha fazla
+                    } else {
+                        state.items.isEmpty()
+                    }
+
+                    if (isEmpty) {
+                        val imageBitmap = when (state.selectedTab) {
+                            LibraryTab.Animes -> emptyAnimeLibrary
+                            LibraryTab.Mangas -> emptyMangaLibrary
+                            LibraryTab.Games  -> emptyGameLibrary
+                        }?.decodeToImageBitmap()
+
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                imageBitmap?.let { bmp ->
+                                    Image(
+                                        bitmap = bmp,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxWidth(0.60f)
+                                    )
+                                }
+                                Text(
+                                    text = if (state.query.isNotBlank()) "No items found" else "Your library is empty",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(top = 20.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            var columnCount = when (windowWidth) {
+                                WindowWidthSizeClass.COMPACT -> 1
+                                WindowWidthSizeClass.MEDIUM -> 3
+                                WindowWidthSizeClass.EXPANDED -> 4
                                 else -> 3
                             }
-                        }
-                        // Compact view mode seçiliyse → kullanıcı ayarı override eder
-                        if (state.mediaCard == MediaCardViewMode.Compact && state.selectedTab != LibraryTab.Games) {
-                            columnCount = state.columnCount
-                        }
-                        // 🔍 Search aktifse ID listesine göre detaylı liste göster
-                        if (state.query.isNotBlank()) {
-                            when (state.selectedTab) {
-                                LibraryTab.Animes -> {
-                                    if (state.showIds.isNotEmpty()) {
-                                        item {
-                                            ItemList(
-                                                items = state.showIds,
-                                                itemType = ItemType.Show,
-                                                viewMode = ItemListViewMode.Grid(columnCount),
-                                                itemContent = { id ->
-                                                    val show = state.shows[id]
-
-                                                    LaunchedEffect(id) {
-                                                        if (show == null) viewModel.fetchShow(id)
-                                                    }
-
-                                                    if (show != null) {
-                                                        AnimeCard(
-                                                            show = show,
-                                                            onClick = { onNavigateToItemDetail(show) },
-                                                            viewMode = state.mediaCard,
-                                                            onStatusSelected = { newStatus ->
-                                                                viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show)
-                                                            }
-                                                        )
-                                                    } else {
-                                                        ItemPlaceholder()
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-                                LibraryTab.Mangas -> {
-                                    if (state.literatureIds.isNotEmpty()) {
-                                        item {
-                                            ItemList(
-                                                items = state.literatureIds,
-                                                itemType = ItemType.Literature,
-                                                viewMode = ItemListViewMode.Grid(columnCount),
-                                                itemContent = { id ->
-                                                    val lit = state.literatures[id]
-
-                                                    LaunchedEffect(id) {
-                                                        if (lit == null) viewModel.fetchLiterature(id)
-                                                    }
-
-                                                    if (lit != null) {
-                                                        LiteratureCard(
-                                                            lit,
-                                                            onClick = { onNavigateToItemDetail(lit) },
-                                                            viewMode = state.mediaCard,
-                                                            onStatusSelected = { newStatus ->
-                                                                viewModel.updateLibraryStatus(lit.id, newStatus, ItemType.Literature)
-                                                            }
-                                                        )
-                                                    } else {
-                                                        ItemPlaceholder()
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-                                LibraryTab.Games -> {
-                                    if (state.gameIds.isNotEmpty()) {
-                                        item {
-                                            ItemList(
-                                                items = state.gameIds,
-                                                itemType = ItemType.Game,
-                                                viewMode = ItemListViewMode.Grid(columnCount),
-                                                itemContent = { id ->
-                                                    val game = state.games[id]
-
-                                                    LaunchedEffect(id) {
-                                                        if (game == null) viewModel.fetchGame(id)
-                                                    }
-
-                                                    if (game != null) {
-                                                        GameCard(
-                                                            game,
-                                                            onClick = { onNavigateToItemDetail(game) },
-                                                            onStatusSelected = { newStatus ->
-                                                                viewModel.updateLibraryStatus(game.id, newStatus, ItemType.Game)
-                                                            }
-                                                        )
-                                                    } else {
-                                                        ItemPlaceholder()
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
+                            if (state.activeType == KKSearchType.people || state.activeType == KKSearchType.characters) {
+                                columnCount = when (windowWidth) {
+                                    WindowWidthSizeClass.COMPACT -> 3
+                                    WindowWidthSizeClass.MEDIUM -> 4
+                                    WindowWidthSizeClass.EXPANDED -> 6
+                                    else -> 3
                                 }
                             }
-                        } else {
-                            // normal liste
-                            item {
-                                ItemList(
-                                    items = state.items,
-                                    viewMode = ItemListViewMode.Grid(columnCount),
-                                    itemContent = { item ->
-                                        when (item) {
-                                            is Show -> AnimeCard(
-                                                show = item,
-                                                onClick = { onNavigateToItemDetail(item) },
-                                                viewMode = state.mediaCard,
-                                                onStatusSelected = { newStatus ->
-                                                    viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Show)
-                                                }
-                                            )
+                            if (state.mediaCard == MediaCardViewMode.Compact && state.selectedTab != LibraryTab.Games) {
+                                columnCount = state.columnCount
+                            }
+                            if (state.query.isNotBlank()) {
+                                when (state.selectedTab) {
+                                    LibraryTab.Animes -> {
+                                        if (state.showIds.isNotEmpty()) {
+                                            item {
+                                                ItemList(
+                                                    items = state.showIds,
+                                                    itemType = ItemType.Show,
+                                                    viewMode = ItemListViewMode.Grid(columnCount),
+                                                    itemContent = { id ->
+                                                        val show = state.shows[id]
 
-                                            is Literature -> LiteratureCard(
-                                                item,
-                                                onClick = { onNavigateToItemDetail(item) },
-                                                viewMode = state.mediaCard,
-                                                onStatusSelected = { newStatus ->
-                                                    viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Literature)
-                                                }
-                                            )
+                                                        LaunchedEffect(id) {
+                                                            if (show == null) viewModel.fetchShow(id)
+                                                        }
 
-                                            is Game -> GameCard(
-                                                item,
-                                                onClick = { onNavigateToItemDetail(item) },
-                                                onStatusSelected = { newStatus ->
-                                                    viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Game)
-                                                }
-                                            )
-
-                                            else -> Text(text = item.toString())
+                                                        if (show != null) {
+                                                            AnimeCard(
+                                                                show = show,
+                                                                onClick = { onNavigateToItemDetail(show) },
+                                                                viewMode = state.mediaCard,
+                                                                onStatusSelected = { newStatus ->
+                                                                    viewModel.updateLibraryStatus(show.id, newStatus, ItemType.Show)
+                                                                }
+                                                            )
+                                                        } else {
+                                                            ItemPlaceholder()
+                                                        }
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
-                                )
+
+                                    LibraryTab.Mangas -> {
+                                        if (state.literatureIds.isNotEmpty()) {
+                                            item {
+                                                ItemList(
+                                                    items = state.literatureIds,
+                                                    itemType = ItemType.Literature,
+                                                    viewMode = ItemListViewMode.Grid(columnCount),
+                                                    itemContent = { id ->
+                                                        val lit = state.literatures[id]
+
+                                                        LaunchedEffect(id) {
+                                                            if (lit == null) viewModel.fetchLiterature(id)
+                                                        }
+
+                                                        if (lit != null) {
+                                                            LiteratureCard(
+                                                                lit,
+                                                                onClick = { onNavigateToItemDetail(lit) },
+                                                                viewMode = state.mediaCard,
+                                                                onStatusSelected = { newStatus ->
+                                                                    viewModel.updateLibraryStatus(lit.id, newStatus, ItemType.Literature)
+                                                                }
+                                                            )
+                                                        } else {
+                                                            ItemPlaceholder()
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    LibraryTab.Games -> {
+                                        if (state.gameIds.isNotEmpty()) {
+                                            item {
+                                                ItemList(
+                                                    items = state.gameIds,
+                                                    itemType = ItemType.Game,
+                                                    viewMode = ItemListViewMode.Grid(columnCount),
+                                                    itemContent = { id ->
+                                                        val game = state.games[id]
+
+                                                        LaunchedEffect(id) {
+                                                            if (game == null) viewModel.fetchGame(id)
+                                                        }
+
+                                                        if (game != null) {
+                                                            GameCard(
+                                                                game,
+                                                                onClick = { onNavigateToItemDetail(game) },
+                                                                onStatusSelected = { newStatus ->
+                                                                    viewModel.updateLibraryStatus(game.id, newStatus, ItemType.Game)
+                                                                }
+                                                            )
+                                                        } else {
+                                                            ItemPlaceholder()
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                item {
+                                    ItemList(
+                                        items = state.items,
+                                        viewMode = ItemListViewMode.Grid(columnCount),
+                                        itemContent = { item ->
+                                            when (item) {
+                                                is Show -> AnimeCard(
+                                                    show = item,
+                                                    onClick = { onNavigateToItemDetail(item) },
+                                                    viewMode = state.mediaCard,
+                                                    onStatusSelected = { newStatus ->
+                                                        viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Show)
+                                                    }
+                                                )
+
+                                                is Literature -> LiteratureCard(
+                                                    item,
+                                                    onClick = { onNavigateToItemDetail(item) },
+                                                    viewMode = state.mediaCard,
+                                                    onStatusSelected = { newStatus ->
+                                                        viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Literature)
+                                                    }
+                                                )
+
+                                                is Game -> GameCard(
+                                                    item,
+                                                    onClick = { onNavigateToItemDetail(item) },
+                                                    onStatusSelected = { newStatus ->
+                                                        viewModel.updateLibraryStatus(item.id, newStatus, ItemType.Game)
+                                                    }
+                                                )
+
+                                                else -> Text(text = item.toString())
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
