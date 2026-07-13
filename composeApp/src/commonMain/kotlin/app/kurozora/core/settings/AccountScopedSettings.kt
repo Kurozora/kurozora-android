@@ -57,7 +57,7 @@ class AccountScopedSettings(
             settingsOrRoot[key(LANGUAGE_KEY)] = value
         }
     var icon: String
-        get() = settingsOrRoot.getStringOrNull(key(APP_ICON_KEY)) ?: "en"
+        get() = settingsOrRoot.getStringOrNull(key(APP_ICON_KEY)) ?: "default"
         set(value) {
             settingsOrRoot[key(APP_ICON_KEY)] = value
         }

@@ -266,7 +266,7 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         StatItem("Reputation", userDetail.attributes.reputationCount, onClick = {  })
-                        StatItem("Achievements", user.relationships?.achievements?.data?.size ?: 0, onClick = {  })
+                        StatItem("Achievements", userDetail.relationships?.achievements?.data?.size ?: 0, onClick = {  })
                         StatItem("Following", userDetail.attributes.followingCount, onClick = { onNavigateToFollowingsList(user.id) })
                         StatItem("Followers", userDetail.attributes.followerCount, onClick = { onNavigateToFollowersList(user.id) })
                         StatItem("Reviews", userDetail.attributes.ratingsCount, onClick = { onNavigateToReviewList(user.id) })

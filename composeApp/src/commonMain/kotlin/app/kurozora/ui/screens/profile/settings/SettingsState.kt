@@ -295,7 +295,7 @@ fun generateSettingsCategories(
                     options = TVRating.entries.map { it.displayName },
                     selected = state.tvRating.displayName,
                     onValueChanged = { selected ->
-                        val rating = TVRating.entries.find { it.name == selected } ?: TVRating.ALL_AGES
+                        val rating = TVRating.entries.find { it.displayName == selected } ?: TVRating.ALL_AGES
                         onEvent(SettingsEvent.UpdateTVRating(rating))
                         onEvent(SettingsEvent.SaveTVRating)
                     },
@@ -327,21 +327,21 @@ fun generateSettingsCategories(
                     title = "Library Kind",
                     subtitle = "What kind of library do you want to import?",
                     options = KKLibrary.Kind.entries.toList().map { it.name },
-                    selected = state.importLibraryKind.name.lowercase(),
+                    selected = state.importLibraryKind.name,
                 ),
                 SettingItem.SingleSelectSetting(
                     key = "library_import_service",
                     title = "Library Service",
                     subtitle = "",
                     options = LibraryImport.Service.entries.toList().map { it.name },
-                     selected = state.importLibraryService.name.lowercase(),
+                     selected = state.importLibraryService.name,
                 ),
                 SettingItem.SingleSelectSetting(
                     key = "library_import_behavior",
                     title = "Library Behavior",
                     subtitle = "",
                     options = LibraryImport.Behavior.entries.toList().map { it.name },
-                    selected = state.importLibraryBehavior.name.lowercase(),
+                    selected = state.importLibraryBehavior.name,
                 ),
                 SettingItem.FilePickerSetting(
                     key = "library_import_xml",

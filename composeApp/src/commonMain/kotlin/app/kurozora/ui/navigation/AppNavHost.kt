@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -90,13 +95,19 @@ fun AppNavHost(
     windowSize: WindowSizeClass,
     modifier: Modifier = Modifier,
 ) {
+    val accountManager = GlobalContext.get().get<AccountManager>()
+    var isLoggedIn by remember { mutableStateOf(accountManager.activeAccount.value != null) }
+    LaunchedEffect(Unit) {
+        accountManager.activeAccount.collect { account ->
+            isLoggedIn = account != null
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Explore.route,
         modifier = modifier
     ) {
-        val accountManager = GlobalContext.get().get<AccountManager>()
-        val isLoggedIn = accountManager.activeAccount.value != null
         // Explore Screen
         composable(
             route = "${Screen.Explore.route}?genre={genre}&theme={theme}",
@@ -305,7 +316,7 @@ fun AppNavHost(
             )
         ) { backStackEntry ->
             val encoded = NavType.StringType.get(backStackEntry.arguments!!, "userJson")
-            val userJson = encoded!!.decodeBase64String()
+            val userJson = encoded?.decodeBase64String() ?: accountManager.activeAccount.value?.userJson ?: return@composable
 
             SettingsScreen(
                 currentUser = Json.decodeFromString<User>(userJson),

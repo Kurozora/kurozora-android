@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kurozorakit.core.KurozoraKit
+import kurozorakit.data.enums.TVRating
+import kurozorakit.data.models.media.Media
 import kurozorakit.data.models.user.User
 import kurozorakit.data.models.user.update.UserUpdate
 
@@ -83,12 +85,44 @@ class SettingsViewModel(
             _state.update { it.copy(isSaving = true) }
             kurozoraKit.user().updateMyProfile(update = userUpdate).
             onSuccess { res ->
-                println("res: $res")
-                accountManager.updateActiveAccount(profileUrl = res.data.profileImageURL ?: "")
-                _state.update { it.copy(isSaving = false, profileImageUrl = res.data.profileImageURL, bannerImageUrl = res.data.bannerImageURL, successMessage = res.message) }
+                val data = res.data
+                // Update state with server response
+                _state.update {
+                    it.copy(
+                        isSaving = false,
+                        username = data.username ?: it.username,
+                        bio = data.biography ?: it.bio,
+                        profileImageUrl = data.profileImageURL ?: it.profileImageUrl,
+                        bannerImageUrl = data.bannerImageURL ?: it.bannerImageUrl,
+                        language = data.preferredLanguage ?: it.language,
+                        timezone = data.preferredTimezone ?: it.timezone,
+                        tvRating = TVRating.entries.find { r -> r.rawValue == data.preferredTVRating } ?: it.tvRating,
+                        successMessage = res.message
+                    )
+                }
+                // Update the in-memory User object and persist updated userJson
+                val user = _state.value.user ?: return@onSuccess
+                data.username?.let { user.attributes.username = it }
+                data.biography?.let { user.attributes.biography = it }
+                data.preferredLanguage?.let { user.attributes.preferredLanguage = it }
+                data.preferredTVRating?.let { user.attributes.preferredTVRating = it }
+                data.preferredTimezone?.let { user.attributes.preferredTimezone = it }
+                val profileImageURL = data.profileImageURL
+                if (profileImageURL != null) {
+                    user.attributes.profile = Media(url = profileImageURL)
+                }
+                val bannerImageURL = data.bannerImageURL
+                if (bannerImageURL != null) {
+                    user.attributes.banner = Media(url = bannerImageURL)
+                }
+                val newUserJson = Json.encodeToString(user)
+                accountManager.updateActiveAccount(
+                    profileUrl = data.profileImageURL ?: "",
+                    userJson = newUserJson
+                )
             }.onError { error ->
-                println("$userUpdate failed to save.")
-                _state.update { it.copy(isSaving = false) }
+                println("$userUpdate failed to save: $error")
+                _state.update { it.copy(isSaving = false, errorMessage = "Failed to save: $error") }
             }
         }
     }

@@ -41,6 +41,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -100,10 +102,25 @@ fun SettingsScreen(
     }
     var selectedCategory by remember { mutableStateOf(categories.firstOrNull()) }
     val isLargeScreen = windowWidth == WindowWidthSizeClass.EXPANDED
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(categories) {
         if (selectedCategory !in categories) {
             selectedCategory = categories.firstOrNull()
+        }
+    }
+
+    LaunchedEffect(state.successMessage) {
+        state.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+    }
+
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
         }
     }
 
@@ -122,6 +139,7 @@ fun SettingsScreen(
                 }
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(onClick = { viewModel.onEvent(SettingsEvent.SaveAccountDetails) }) {
                 Text("Save", modifier = Modifier.padding(horizontal = 16.dp))
@@ -135,7 +153,7 @@ fun SettingsScreen(
                         .width(400.dp)
                         .fillMaxHeight()
                 ) {
-                    AccountSwitcher(accountManager)
+                    AccountSwitcher(accountManager, onAddAccount = onNavigateToLoginScreen)
 
                     categories.forEach { category ->
                         val isSelected = selectedCategory == category

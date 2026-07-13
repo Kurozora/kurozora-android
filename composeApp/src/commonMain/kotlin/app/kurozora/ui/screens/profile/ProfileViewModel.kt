@@ -44,7 +44,6 @@ class ProfileViewModel(
 
             if (result is Result.Success) {
                 val user = result.data.data.firstOrNull() ?: return@launch
-                user.relationships
 
                 _state.update {
                     it.copy(
