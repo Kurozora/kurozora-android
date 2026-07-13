@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.models.episode.Episode
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class SeasonDetailViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -18,6 +19,7 @@ class SeasonDetailViewModel(
     private val _state = MutableStateFlow(SeasonDetailState())
     val state: StateFlow<SeasonDetailState> = _state.asStateFlow()
     fun fetchSeasonEpisodes(seasonId: String) {
+        KurozoraLogger.debug("[SeasonDetailViewModel]", "fetchSeasonEpisodes: $seasonId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.season().getEpisodes(seasonId)
@@ -39,6 +41,7 @@ class SeasonDetailViewModel(
      * Lazy load: Episode
      */
     fun fetchEpisode(id: String) {
+        KurozoraLogger.debug("[SeasonDetailViewModel]", "fetchEpisode: $id")
         if (_state.value.episodes.containsKey(id)) return
 
         viewModelScope.launch {
@@ -59,6 +62,7 @@ class SeasonDetailViewModel(
     }
 
     fun markEpisodeAsWatched(episodeId: String) {
+        KurozoraLogger.debug("[SeasonDetailViewModel]", "markEpisodeAsWatched: $episodeId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = kurozoraKit.episode().updateEpisodeWatchStatus(episodeId)
@@ -74,7 +78,7 @@ class SeasonDetailViewModel(
                     _state.value = _state.value.copy(episodes = updatedMap)
                 }
             } catch (e: Exception) {
-                println("❌ Error in markAsWatchedEpisode: ${e.localizedMessage}")
+                KurozoraLogger.error("[SeasonDetailViewModel]", "Error in markAsWatchedEpisode: ${e.localizedMessage}", e)
             }
         }
     }

@@ -23,6 +23,7 @@ import kurozorakit.data.models.search.filters.LiteratureFilter
 import kurozorakit.data.models.search.filters.ShowFilter
 import kurozorakit.data.models.show.Show
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class LibraryViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -45,6 +46,7 @@ class LibraryViewModel(
     }
 
     fun fetchLibrary(sortType: KKLibrary.SortType = KKLibrary.SortType.NONE, sortOption: KKLibrary.Option = KKLibrary.Option.NONE) {
+        KurozoraLogger.debug("[LibraryViewModel]", "fetchLibrary: sortType=$sortType, sortOption=$sortOption")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val currentState = _state.value
@@ -96,6 +98,7 @@ class LibraryViewModel(
     }
 
     private fun performSearch(query: String, types: List<KKSearchType>, filter: KKSearchFilter? = null) {
+        KurozoraLogger.debug("[LibraryViewModel]", "performSearch: query=$query, types=$types")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -152,6 +155,7 @@ class LibraryViewModel(
     )
 
     fun updateLibraryStatus(itemId: String, newStatus: KKLibrary.Status, type: ItemType) {
+        KurozoraLogger.debug("[LibraryViewModel]", "updateLibraryStatus: itemId=$itemId, newStatus=$newStatus, type=$type")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val kind = when (type) {
@@ -162,13 +166,13 @@ class LibraryViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[LibraryViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[LibraryViewModel]", "Library status updated for $type ($itemId) → $newStatus")
                     // Güncel listeyi al ve öğeyi güncelle
                     val updatedList = _state.value.items.map { item ->
                         when (item) {
@@ -199,10 +203,10 @@ class LibraryViewModel(
 
                     _state.value = _state.value.copy(items = updatedList)
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[LibraryViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[LibraryViewModel]", "Error updating library status", e)
             }
         }
     }

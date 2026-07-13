@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class FavoriteViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -22,11 +23,13 @@ class FavoriteViewModel(
     }
 
     fun selectTab(tab: LibraryTab) {
+        KurozoraLogger.debug("[FavoriteViewModel]", "selectTab($tab)")
         _state.update { it.copy(selectedTab = tab, errorMessage = null) }
         fetchFavorites()
     }
 
     fun fetchFavorites() {
+        KurozoraLogger.debug("[FavoriteViewModel]", "fetchFavorites()")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val currentState = _state.value

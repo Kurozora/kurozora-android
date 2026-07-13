@@ -5,18 +5,20 @@ import android.content.Context
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import app.kurozora.di.initKoin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kurozorakit.store.DatabaseDriverFactory
 import kurozorakit.store.db.KurozoraDatabase
 import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.logger.Level
 
 class KurozoraApplication : Application() {
+    val loggingScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     override fun onCreate() {
         super.onCreate()
 
         initKoin {
-            androidLogger(level = Level.NONE)
             androidContext(androidContext = this@KurozoraApplication)
         }
     }

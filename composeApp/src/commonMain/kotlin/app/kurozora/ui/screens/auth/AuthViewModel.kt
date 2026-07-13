@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
+import kurozorakit.shared.logging.KurozoraLogger
 
 class AuthViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -31,6 +32,7 @@ class AuthViewModel(
     }
 
     fun login(onSuccess: () -> Unit) {
+        KurozoraLogger.debug("[AuthViewModel]", "Login initiated")
         val s = _state.value
         if (s.email.isBlank() || s.password.isBlank()) {
             _state.value = s.copy(errorMessage = "Email and password cannot be empty")
@@ -43,6 +45,7 @@ class AuthViewModel(
                     .onSuccess { onSuccess() }
                     .onError { e -> _state.value = _state.value.copy(errorMessage = e.message, isLoading = false) }
             } catch (e: Exception) {
+                KurozoraLogger.error("[AuthViewModel]", "Login failed", e)
                 _state.value = _state.value.copy(
                     errorMessage = e.message ?: "Login failed", isLoading = false
                 )
@@ -51,6 +54,7 @@ class AuthViewModel(
     }
 
     fun signup(onSuccess: () -> Unit) {
+        KurozoraLogger.debug("[AuthViewModel]", "Signup initiated")
         val s = _state.value
         if (s.email.isBlank() || s.password.isBlank() || s.confirmPassword.isBlank()) {
             _state.value = s.copy(errorMessage = "All fields are required")
@@ -68,6 +72,7 @@ class AuthViewModel(
                     .onSuccess { onSuccess() }
                     .onError { e -> _state.value = _state.value.copy(errorMessage = e.message, isLoading = false) }
             } catch (e: Exception) {
+                KurozoraLogger.error("[AuthViewModel]", "Signup failed", e)
                 _state.value = _state.value.copy(
                     errorMessage = e.message ?: "Signup failed", isLoading = false
                 )

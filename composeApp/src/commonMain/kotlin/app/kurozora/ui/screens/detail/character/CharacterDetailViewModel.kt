@@ -16,6 +16,7 @@ import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.person.Person
 import kurozorakit.data.models.show.Show
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class CharacterDetailViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -23,6 +24,7 @@ class CharacterDetailViewModel(
     private val _state = MutableStateFlow(CharacterDetailState())
     val state: StateFlow<CharacterDetailState> = _state.asStateFlow()
     fun fetchCharacterDetails(characterId: String) {
+        KurozoraLogger.debug("[CharacterDetailViewModel]", "fetchCharacterDetails: $characterId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.character().getCharacter(
@@ -59,6 +61,7 @@ class CharacterDetailViewModel(
      * Lazy load: Show
      */
     fun fetchShow(id: String) {
+        KurozoraLogger.debug("[CharacterDetailViewModel]", "fetchShow: $id")
         if (_state.value.shows.containsKey(id)) return
 
         viewModelScope.launch {
@@ -82,6 +85,7 @@ class CharacterDetailViewModel(
      * Lazy load: Literature
      */
     fun fetchLiterature(id: String) {
+        KurozoraLogger.debug("[CharacterDetailViewModel]", "fetchLiterature: $id")
         if (_state.value.literatures.containsKey(id)) return
 
         viewModelScope.launch {
@@ -105,6 +109,7 @@ class CharacterDetailViewModel(
      * Lazy load: Person
      */
     fun fetchPerson(id: String) {
+        KurozoraLogger.debug("[CharacterDetailViewModel]", "fetchPerson: $id")
         if (_state.value.people.containsKey(id)) return
 
         viewModelScope.launch {
@@ -128,6 +133,7 @@ class CharacterDetailViewModel(
      * Lazy load: Game
      */
     fun fetchGame(id: String) {
+        KurozoraLogger.debug("[CharacterDetailViewModel]", "fetchGame: $id")
         if (_state.value.games.containsKey(id)) return
 
         viewModelScope.launch {
@@ -163,13 +169,13 @@ class CharacterDetailViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[CharacterDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[CharacterDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
 
                     when (section) {
                         SectionType.RelatedShows -> {
@@ -210,10 +216,10 @@ class CharacterDetailViewModel(
                         else -> {}
                     }
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[CharacterDetailViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[CharacterDetailViewModel]", "Error updating library status: ${e.localizedMessage}", e)
             }
         }
     }
@@ -237,7 +243,7 @@ class CharacterDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[CharacterDetailViewModel]", "Failed to post review for character $characterId: $result")
                 }
             }
         }

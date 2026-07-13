@@ -87,7 +87,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            implementation("app.kurozora:kurozorakit:1.2.6")
+            implementation("app.kurozora:kurozorakit:1.3.0-SNAPSHOT")
 
             implementation(libs.mediamp.all)
 

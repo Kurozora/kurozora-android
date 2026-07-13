@@ -17,6 +17,7 @@ import kurozorakit.data.models.person.Person
 import kurozorakit.data.models.show.cast.Cast
 import kurozorakit.data.models.studio.Studio
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 import kotlin.uuid.ExperimentalUuidApi
 
 class LiteratureDetailViewModel(
@@ -30,6 +31,7 @@ class LiteratureDetailViewModel(
      */
     @OptIn(ExperimentalUuidApi::class)
     fun fetchLiteratureDetails(litId: String) {
+        KurozoraLogger.debug("[LiteratureDetailViewModel]", "fetchLiteratureDetails: $litId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.literature().getLiterature(
@@ -71,6 +73,7 @@ class LiteratureDetailViewModel(
      * Lazy load için character fetch
      */
     fun fetchCharacter(id: String) {
+        KurozoraLogger.debug("[LiteratureDetailViewModel]", "fetchCharacter: $id")
         if (_state.value.characters.containsKey(id)) return
 
         viewModelScope.launch {
@@ -94,6 +97,7 @@ class LiteratureDetailViewModel(
      * Lazy load için person fetch
      */
     fun fetchPerson(id: String) {
+        KurozoraLogger.debug("[LiteratureDetailViewModel]", "fetchPerson: $id")
         if (_state.value.people.containsKey(id)) return
 
         viewModelScope.launch {
@@ -114,6 +118,7 @@ class LiteratureDetailViewModel(
     }
 
     fun fetchStudio(id: String) {
+        KurozoraLogger.debug("[LiteratureDetailViewModel]", "fetchStudio: $id")
         if (_state.value.studios.containsKey(id)) return
 
         viewModelScope.launch {
@@ -134,6 +139,7 @@ class LiteratureDetailViewModel(
     }
 
     fun fetchMoreByStudioLiterature(id: String) {
+        KurozoraLogger.debug("[LiteratureDetailViewModel]", "fetchMoreByStudioLiterature: $id")
         if (_state.value.moreByStudio.containsKey(id)) return
 
         viewModelScope.launch {
@@ -170,13 +176,13 @@ class LiteratureDetailViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[LiteratureDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[LiteratureDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
 
                     when (section) {
                         SectionType.MainShow -> {
@@ -239,10 +245,10 @@ class LiteratureDetailViewModel(
                         }
                     }
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[LiteratureDetailViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[LiteratureDetailViewModel]", "Error updating library status: ${e.localizedMessage}", e)
             }
         }
     }
@@ -267,7 +273,7 @@ class LiteratureDetailViewModel(
                 .updateMyFavorites(KKLibrary.Kind.LITERATURES, modelId)
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
-                println("❌ Favorite update failed: $result")
+                KurozoraLogger.error("[LiteratureDetailViewModel]", "Favorite update failed: $result")
                 // rollback
                 _state.update {
                     it.copy(
@@ -279,7 +285,7 @@ class LiteratureDetailViewModel(
                     )
                 }
             } else {
-                println("✅ Favorite updated successfully")
+                KurozoraLogger.info("[LiteratureDetailViewModel]", "Favorite updated successfully")
             }
         }
     }
@@ -306,7 +312,7 @@ class LiteratureDetailViewModel(
                 .updateReminderStatus(KKLibrary.Kind.LITERATURES, modelId)
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
-                println("❌ Reminder status update failed: $result")
+                KurozoraLogger.error("[LiteratureDetailViewModel]", "Reminder status update failed: $result")
 
                 _state.update {
                     it.copy(
@@ -320,7 +326,7 @@ class LiteratureDetailViewModel(
                     )
                 }
             } else {
-                println("✅ Reminder updated successfully")
+                KurozoraLogger.info("[LiteratureDetailViewModel]", "Reminder updated successfully")
             }
         }
     }
@@ -344,7 +350,7 @@ class LiteratureDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[LiteratureDetailViewModel]", "Failed to post review for literature $litId: $result")
                 }
             }
         }

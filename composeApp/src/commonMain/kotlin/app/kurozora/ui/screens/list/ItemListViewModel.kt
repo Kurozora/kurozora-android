@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class ItemListViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -23,7 +24,7 @@ class ItemListViewModel(
             items = items,
             isLoading = false
         )
-        println("Preloaded items: $items")
+        KurozoraLogger.debug("[ItemListViewModel]", "Preloaded items: $items")
     }
 
     /**
@@ -33,16 +34,18 @@ class ItemListViewModel(
         fetcher: suspend (next: String?, limit: Int) -> Pair<List<String>, String?>,
         limit: Int = 20,
     ) {
+        KurozoraLogger.debug("[ItemListViewModel]", "loadInitial: limit=$limit")
         viewModelScope.launch {
             try {
                 val (data, next) = fetcher(null, limit)
-                println("loadInitial FETCHER" + "Data: $data" + "Next: $next")
+                KurozoraLogger.debug("[ItemListViewModel]", "loadInitial: data=$data, next=$next")
                 _state.value = _state.value.copy(
                     itemIds = data,
                     next = next,
                     isLoading = false
                 )
             } catch (e: Exception) {
+                KurozoraLogger.error("[ItemListViewModel]", "Error in loadInitial", e)
                 _state.value = _state.value.copy(
                     isLoading = false,
                     error = e.localizedMessage ?: "Unknown error"
@@ -58,6 +61,7 @@ class ItemListViewModel(
         fetcher: suspend (next: String?, limit: Int) -> Pair<List<String>, String?>,
         limit: Int = 20,
     ) {
+        KurozoraLogger.debug("[ItemListViewModel]", "loadMore: limit=$limit")
         val nextUrl = _state.value.next?.removePrefix("/v1/") ?: return
         viewModelScope.launch {
             try {
@@ -68,6 +72,7 @@ class ItemListViewModel(
                     isLoadingMore = false
                 )
             } catch (e: Exception) {
+                KurozoraLogger.error("[ItemListViewModel]", "Error in loadMore", e)
                 _state.value = _state.value.copy(
                     isLoadingMore = false,
                     error = e.localizedMessage ?: "Load more failed"
@@ -77,6 +82,7 @@ class ItemListViewModel(
     }
 
     fun fetchItemDetail(itemId: String, type: ItemType) {
+        KurozoraLogger.debug("[ItemListViewModel]", "fetchItemDetail: itemId=$itemId, type=$type")
         if (_state.value.loadingItems.contains(itemId)) return
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -147,6 +153,7 @@ class ItemListViewModel(
         newStatus: KKLibrary.Status,
         type: ItemType,
     ) {
+        KurozoraLogger.debug("[ItemListViewModel]", "updateLibraryStatus: itemId=$itemId, newStatus=$newStatus, type=$type")
         viewModelScope.launch(Dispatchers.IO) {
             // 1) Type → Kind çevir
             val kind = when (type) {
@@ -163,11 +170,11 @@ class ItemListViewModel(
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result !is Result.Success) {
-                    println("⚠️ Failed to update status ($itemId → $newStatus): $result")
+                    KurozoraLogger.warning("[ItemListViewModel]", "Failed to update status ($itemId → $newStatus): $result")
                     return@launch
                 }
 
-                println("✅ Library updated ($itemId → $newStatus)")
+                KurozoraLogger.info("[ItemListViewModel]", "Library updated ($itemId → $newStatus)")
                 // 3) Mevcut item'ı al
                 val current = _state.value.items[itemId] ?: return@launch
                 // 4) TYPE’e göre library içindeki status'u güncelle
@@ -195,23 +202,24 @@ class ItemListViewModel(
                 // 6) State’e yaz
                 _state.update { it.copy(items = newMap) }
             } catch (e: Exception) {
-                println("❌ updateLibraryStatus error: ${e.localizedMessage}")
+                KurozoraLogger.error("[ItemListViewModel]", "updateLibraryStatus error", e)
             }
         }
     }
 
     fun markEpisodeAsWatched(episodeId: String) {
+        KurozoraLogger.debug("[ItemListViewModel]", "markEpisodeAsWatched: episodeId=$episodeId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // 1) API çağrısı
                 val result = kurozoraKit.episode().updateEpisodeWatchStatus(episodeId)
                 if (result !is Result.Success) {
-                    println("⚠️ Failed to mark episode as watched: $result")
+                    KurozoraLogger.warning("[ItemListViewModel]", "Failed to mark episode as watched: $result")
                     return@launch
                 }
                 val watchStatus = result.data.data.watchStatus
 
-                println("✅ Episode marked as watched: $episodeId" + "Watch Status: $watchStatus")
+                KurozoraLogger.info("[ItemListViewModel]", "Episode marked as watched: $episodeId, Watch Status: $watchStatus")
                 // 2) Eğer item listesinde bu episode varsa güncelle
                 val current = _state.value.items[episodeId] ?: return@launch
                 // 3) Episode modelinin "watched" flag'ini güncelle
@@ -234,22 +242,23 @@ class ItemListViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("❌ Error marking episode watched: ${e.localizedMessage}")
+                KurozoraLogger.error("[ItemListViewModel]", "Error marking episode watched", e)
             }
         }
     }
 
     fun followUser(userId: String) {
+        KurozoraLogger.debug("[ItemListViewModel]", "followUser: userId=$userId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = kurozoraKit.auth().updateFollowStatus(userId)
 
                 if (result !is Result.Success) {
-                    println("⚠️ Failed to update follow status for $userId: $result")
+                    KurozoraLogger.warning("[ItemListViewModel]", "Failed to update follow status for $userId: $result")
                     return@launch
                 }
                 val newStatus = result.data.data.followStatus
-                println("✅ Follow status updated for $userId → $newStatus")
+                KurozoraLogger.info("[ItemListViewModel]", "Follow status updated for $userId → $newStatus")
                 // 1) Eğer bu user zaten itemList'te varsa güncelle
                 val current = _state.value.items[userId] ?: return@launch
                 val updatedUser = when (current) {
@@ -270,7 +279,7 @@ class ItemListViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("❌ Error followUser: ${e.localizedMessage}")
+                KurozoraLogger.error("[ItemListViewModel]", "Error followUser", e)
             }
         }
     }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.enums.SeasonOfYear
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class AirSeasonViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -17,6 +18,7 @@ class AirSeasonViewModel(
     private val _state = MutableStateFlow(AirSeasonState())
     val state: StateFlow<AirSeasonState> = _state.asStateFlow()
     fun selectTab(tab: SeasonTab) {
+        KurozoraLogger.debug("[AirSeasonViewModel]", "selectTab($tab)")
         _state.update {
             it.copy(
                 selectedTab = tab,
@@ -27,6 +29,7 @@ class AirSeasonViewModel(
     }
 
     fun fetchSeason(year: String, season: SeasonOfYear) {
+        KurozoraLogger.debug("[AirSeasonViewModel]", "fetchSeason($year, $season)")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.airSeason().getAnimeSeason(year, season)

@@ -20,6 +20,7 @@ import kurozorakit.data.models.show.related.RelatedLiterature
 import kurozorakit.data.models.show.related.RelatedShow
 import kurozorakit.data.models.studio.Studio
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 import kotlin.uuid.ExperimentalUuidApi
 
 class GameDetailViewModel(
@@ -33,6 +34,7 @@ class GameDetailViewModel(
      */
     @OptIn(ExperimentalUuidApi::class)
     fun fetchGameDetails(gameId: String) {
+        KurozoraLogger.debug("[GameDetailViewModel]", "fetchGameDetails: $gameId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.game().getGame(
@@ -75,6 +77,7 @@ class GameDetailViewModel(
      * Lazy load için cast fetch
      */
     fun fetchCast(id: String) {
+        KurozoraLogger.debug("[GameDetailViewModel]", "fetchCast: $id")
         if (_state.value.cast.containsKey(id)) return
 
         viewModelScope.launch {
@@ -98,6 +101,7 @@ class GameDetailViewModel(
      * Lazy load için character fetch
      */
     fun fetchCharacter(id: String) {
+        KurozoraLogger.debug("[GameDetailViewModel]", "fetchCharacter: $id")
         if (_state.value.characters.containsKey(id)) return
 
         viewModelScope.launch {
@@ -121,6 +125,7 @@ class GameDetailViewModel(
      * Lazy load için person fetch
      */
     fun fetchPerson(id: String) {
+        KurozoraLogger.debug("[GameDetailViewModel]", "fetchPerson: $id")
         if (_state.value.people.containsKey(id)) return
 
         viewModelScope.launch {
@@ -141,6 +146,7 @@ class GameDetailViewModel(
     }
 
     fun fetchStudio(id: String) {
+        KurozoraLogger.debug("[GameDetailViewModel]", "fetchStudio: $id")
         if (_state.value.studios.containsKey(id)) return
 
         viewModelScope.launch {
@@ -161,6 +167,7 @@ class GameDetailViewModel(
     }
 
     fun fetchMoreByStudioGame(id: String) {
+        KurozoraLogger.debug("[GameDetailViewModel]", "fetchMoreByStudioGame: $id")
         if (_state.value.moreByStudio.containsKey(id)) return
 
         viewModelScope.launch {
@@ -197,13 +204,13 @@ class GameDetailViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[GameDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[GameDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
 
                     when (section) {
                         SectionType.MainShow -> {
@@ -266,10 +273,10 @@ class GameDetailViewModel(
                         }
                     }
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[GameDetailViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[GameDetailViewModel]", "Error updating library status: ${e.localizedMessage}", e)
             }
         }
     }
@@ -294,7 +301,7 @@ class GameDetailViewModel(
                 .updateMyFavorites(KKLibrary.Kind.GAMES, modelId)
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
-                println("❌ Favorite update failed: $result")
+                KurozoraLogger.error("[GameDetailViewModel]", "Favorite update failed: $result")
                 // rollback
                 _state.update {
                     it.copy(
@@ -306,7 +313,7 @@ class GameDetailViewModel(
                     )
                 }
             } else {
-                println("✅ Favorite updated successfully")
+                KurozoraLogger.info("[GameDetailViewModel]", "Favorite updated successfully")
             }
         }
     }
@@ -333,7 +340,7 @@ class GameDetailViewModel(
                 .updateReminderStatus(KKLibrary.Kind.GAMES, modelId)
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
-                println("❌ Reminder status update failed: $result")
+                KurozoraLogger.error("[GameDetailViewModel]", "Reminder status update failed: $result")
 
                 _state.update {
                     it.copy(
@@ -347,7 +354,7 @@ class GameDetailViewModel(
                     )
                 }
             } else {
-                println("✅ Reminder updated successfully")
+                KurozoraLogger.info("[GameDetailViewModel]", "Reminder updated successfully")
             }
         }
     }
@@ -371,7 +378,7 @@ class GameDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[GameDetailViewModel]", "Failed to post review for game $gameId: $result")
                 }
             }
         }

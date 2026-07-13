@@ -13,6 +13,7 @@ import kurozorakit.data.models.explore.ExploreCategory
 import kurozorakit.data.models.genre.Genre
 import kurozorakit.data.models.theme.Theme
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 enum class ItemType {
     Show, Game, Literature, Character, Episode, Genre, Theme, Song, Person, Recap, Studio, Season, Cast, User, Staff, Review, ReviewEntity, RelatedShow, RelatedLiterature, RelatedGame
@@ -32,6 +33,7 @@ class ExploreViewModel(
      * İlk aşamada kategorileri yükle ve her kategorinin sadece identity listesini sakla
      */
     fun fetchExplore(genreId: String? = null, themeId: String? = null, forceRefresh: Boolean = false) {
+        KurozoraLogger.debug("[ExploreViewModel]", "fetchExplore called: genreId=$genreId, themeId=$themeId")
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
@@ -79,6 +81,7 @@ class ExploreViewModel(
                     )
                 }
             } catch (e: Exception) {
+                KurozoraLogger.error("[ExploreViewModel]", "Error in fetchExplore", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = e.localizedMessage ?: "Unknown error"
@@ -88,11 +91,13 @@ class ExploreViewModel(
     }
 
     fun changeGenre(genre: Genre) {
+        KurozoraLogger.debug("[ExploreViewModel]", "changeGenre: ${genre.id}")
         _uiState.value = _uiState.value.copy(genre = genre)
         fetchExplore(genreId = genre.id)
     }
 
     fun changeTheme(theme: Theme) {
+        KurozoraLogger.debug("[ExploreViewModel]", "changeTheme: ${theme.id}")
         _uiState.value = _uiState.value.copy(theme = theme)
         fetchExplore(themeId = theme.id)
     }
@@ -100,6 +105,7 @@ class ExploreViewModel(
      * Tek bir item için detay fetch et
      */
     fun fetchItemDetail(categoryId: String, itemId: String, type: ItemType) {
+        KurozoraLogger.debug("[ExploreViewModel]", "fetchItemDetail: categoryId=$categoryId, itemId=$itemId, type=$type")
         if (type == ItemType.Recap) return // 🔹 Recap için hiçbir şey çekme
         if (_uiState.value.loadingItems.contains(itemId)) return
 
@@ -159,6 +165,7 @@ class ExploreViewModel(
     }
 
     fun updateLibraryStatus(itemId: String, newStatus: KKLibrary.Status, type: ItemType) {
+        KurozoraLogger.debug("[ExploreViewModel]", "updateLibraryStatus: itemId=$itemId, newStatus=$newStatus, type=$type")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val kind = when (type) {
@@ -176,7 +183,7 @@ class ExploreViewModel(
                 }
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[ExploreViewModel]", "Library status updated for $type ($itemId) → $newStatus")
                     val updatedItems = _uiState.value.categoryItems.toMutableMap()
                     updatedItems.forEach { (categoryId, items) ->
                         val mutableItems = items.toMutableMap()
@@ -222,21 +229,22 @@ class ExploreViewModel(
 
                     _uiState.value = _uiState.value.copy(categoryItems = updatedItems)
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[ExploreViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[ExploreViewModel]", "Error updating library status", e)
             }
         }
     }
 
     fun markAsWatchedEpisode(episodeId: String, categoryId: String) {
+        KurozoraLogger.debug("[ExploreViewModel]", "markAsWatchedEpisode: episodeId=$episodeId, categoryId=$categoryId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = kurozoraKit.episode().updateEpisodeWatchStatus(episodeId)
 
                 if (result is Result.Success) {
-                    println("✅ Episode marked as watched: $episodeId")
+                    KurozoraLogger.info("[ExploreViewModel]", "Episode marked as watched: $episodeId")
                     // 🔹 İlgili kategoriyi yeniden çek
                     val exploreResult = kurozoraKit.explore()
                         .getExplore(exploreCategoryId = categoryId)
@@ -264,18 +272,18 @@ class ExploreViewModel(
                                 categoryItems = updatedItems
                             )
 
-                            println("♻️ Category $categoryId episodes refreshed successfully")
+                            KurozoraLogger.debug("[ExploreViewModel]", "Category $categoryId episodes refreshed successfully")
                         } else {
-                            println("⚠️ No category data found for $categoryId")
+                            KurozoraLogger.warning("[ExploreViewModel]", "No category data found for $categoryId")
                         }
                     } else {
-                        println("⚠️ Failed to refresh category $categoryId: $exploreResult")
+                        KurozoraLogger.warning("[ExploreViewModel]", "Failed to refresh category $categoryId: $exploreResult")
                     }
                 } else {
-                    println("⚠️ Failed to mark episode as watched: $result")
+                    KurozoraLogger.warning("[ExploreViewModel]", "Failed to mark episode as watched: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error in markAsWatchedEpisode: ${e.localizedMessage}")
+                KurozoraLogger.error("[ExploreViewModel]", "Error in markAsWatchedEpisode", e)
             }
         }
     }

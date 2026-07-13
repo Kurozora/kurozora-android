@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.enums.KKLibrary
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class ProfileViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -17,6 +18,7 @@ class ProfileViewModel(
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
     fun fetchUserDetails(userId: String) {
+        KurozoraLogger.debug("[ProfileViewModel]", "fetchUserDetails($userId)")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.auth().getUserProfile(userId)
@@ -66,6 +68,7 @@ class ProfileViewModel(
     }
 
     fun followUser(userId: String) {
+        KurozoraLogger.debug("[ProfileViewModel]", "followUser($userId)")
         viewModelScope.launch {
             kurozoraKit.auth().updateFollowStatus(userId).onSuccess { res ->
                 _state.update { it.copy(followStatus = res.data.followStatus) }

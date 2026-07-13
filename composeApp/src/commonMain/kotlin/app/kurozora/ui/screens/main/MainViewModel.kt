@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
+import kurozorakit.shared.logging.KurozoraLogger
 
 class MainViewModel(
     private val kit: KurozoraKit,
@@ -16,7 +17,7 @@ class MainViewModel(
     val seenOnboarding: StateFlow<Boolean> = _seenOnboarding
 
     init {
-        // Örn: SharedPreferences veya DataStore’dan oku
+        KurozoraLogger.debug("[MainViewModel]", "Loading seenOnboarding setting")
         viewModelScope.launch {
             val seen = accountManager.getScopedSettings()?.get("seenOnboarding").toBoolean()
             _seenOnboarding.value = seen
@@ -24,6 +25,7 @@ class MainViewModel(
     }
 
     fun markOnboardingSeen() {
+        KurozoraLogger.debug("[MainViewModel]", "Marking onboarding as seen")
         viewModelScope.launch {
             accountManager.getScopedSettings()?.set("seenOnboarding", "true")
             _seenOnboarding.value = true

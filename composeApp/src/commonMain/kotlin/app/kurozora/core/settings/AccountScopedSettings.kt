@@ -4,13 +4,8 @@ import app.kurozora.ui.theme.ThemeController
 import app.kurozora.ui.theme.ThemeType
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
+import kurozorakit.shared.logging.KurozoraLogger
 
-/**
- * Eğer namespace == null ise, zaten verilen Settings (factory.create(name)) platform-specific
- * bir instance olacaktır ve doğrudan kullanılır.
- *
- * Eğer namespace != null ise, root Settings üzerinde 'namespace.key' formuyla çalışır.
- */
 class AccountScopedSettings(
     private val settingsOrRoot: Settings,
     private val namespace: String? = null,
@@ -34,6 +29,7 @@ class AccountScopedSettings(
                 else -> ThemeType.DEFAULT
             }
             ThemeController.setTheme(newTheme)
+            KurozoraLogger.debug("[AccountScopedSettings]", "Theme changed to: $newTheme")
         }
     )
 
@@ -55,25 +51,23 @@ class AccountScopedSettings(
         get() = settingsOrRoot.getStringOrNull(key(LANGUAGE_KEY)) ?: "en"
         set(value) {
             settingsOrRoot[key(LANGUAGE_KEY)] = value
+            KurozoraLogger.debug("[AccountScopedSettings]", "Language set to: $value")
         }
     var icon: String
         get() = settingsOrRoot.getStringOrNull(key(APP_ICON_KEY)) ?: "default"
         set(value) {
             settingsOrRoot[key(APP_ICON_KEY)] = value
+            KurozoraLogger.debug("[AccountScopedSettings]", "App icon set to: $value")
         }
 
-    /**
-     * Clear only keys under this namespace (fallback). If Settings instance is a dedicated instance
-     * (namespace == null and settingsOrRoot was created by factory.create(name)), clear everything in it.
-     */
     fun clear() {
         if (namespace == null) {
             settingsOrRoot.clear()
-            return
+        } else {
+            val prefix = "$namespace."
+            val keysToRemove = settingsOrRoot.keys.filter { it.startsWith(prefix) }
+            keysToRemove.forEach { settingsOrRoot.remove(it) }
         }
-        // Filter keys that start with namespace and remove them.
-        val prefix = "$namespace."
-        val keysToRemove = settingsOrRoot.keys.filter { it.startsWith(prefix) }
-        keysToRemove.forEach { settingsOrRoot.remove(it) }
+        KurozoraLogger.info("[AccountScopedSettings]", "Settings cleared for namespace: ${namespace ?: "dedicated"}")
     }
 }

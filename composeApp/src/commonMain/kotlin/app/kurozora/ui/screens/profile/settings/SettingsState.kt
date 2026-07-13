@@ -3,22 +3,33 @@ package app.kurozora.ui.screens.profile.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
@@ -35,6 +46,10 @@ import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.enums.TVRating
 import kurozorakit.data.models.misc.LibraryImport
 import kurozorakit.data.models.user.User
+import kurozorakit.shared.logging.LogLevel
+import kurozorakit.shared.logging.LogPacket
+import kurozorakit.shared.logging.MemoryBufferSink
+import org.koin.compose.koinInject
 
 data class SettingsState(
     val user: User? = null,
@@ -105,6 +120,9 @@ sealed interface SettingsEvent {
     data object EnableTwoFactor : SettingsEvent
     data object LogoutOtherSessions : SettingsEvent
     data object DeleteAccount : SettingsEvent
+
+    // Advanced / Debug
+    data object ClearLogBuffer : SettingsEvent
 }
 
 data class SettingsCategory(
@@ -371,6 +389,42 @@ fun generateSettingsCategories(
                 )
             )
         ),
+        SettingsCategory(
+            key = "advanced",
+            title = "Advanced",
+            subtitle = "Debug and logging configuration",
+            icon = { Icon(Icons.Default.BugReport, contentDescription = "Advanced") },
+            items = listOf(
+                SettingItem.CustomSetting(
+                    key = "log_viewer",
+                    title = "View Logs",
+                    subtitle = "View live application logs",
+                    isFullDialog = true,
+                    contentWithState = { currentState ->
+                        LogViewerContent(currentState)
+                    }
+                ),
+                SettingItem.ActionButtonSetting(
+                    key = "clear_log_buffer",
+                    title = "Clear Log Buffer",
+                    buttonText = "Clear",
+                    onClick = { onEvent(SettingsEvent.ClearLogBuffer) }
+                )
+            )
+        ),
+        SettingsCategory(
+            key = "app_info",
+            title = "App Info",
+            subtitle = "Application information",
+            icon = { Icon(Icons.Default.Info, contentDescription = "App Info") },
+            items = listOf(
+                SettingItem.CustomSetting(
+                    key = "version_info",
+                    title = "App Version",
+                    subtitle = "1.0.0"
+                )
+            )
+        ),
     )
 }
 
@@ -429,6 +483,61 @@ fun ImportPreviewContent(
             contentAlignment = Alignment.Center
         ) {
             Text("Select an XML file first")
+        }
+    }
+}
+
+@Composable
+fun LogViewerContent(state: SettingsState) {
+    val sink: MemoryBufferSink = koinInject()
+    val logList = remember { mutableStateOf(sink.snapshot()) }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        sink.logFlow.collect { packets ->
+            logList.value = packets
+            if (listState.canScrollForward.not()) {
+                listState.animateScrollToItem(packets.size - 1)
+            }
+        }
+    }
+
+    val filteredLogs = logList.value.filter { it.tag != "[HTTP]" }
+
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("${filteredLogs.size} entries", style = MaterialTheme.typography.bodySmall)
+            Button(onClick = { sink.clear() }) {
+                Text("Clear")
+            }
+        }
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            items(filteredLogs) { packet ->
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    Text(
+                        text = "${packet.level.name} [${packet.tag}] ${packet.message}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = when (packet.level) {
+                            LogLevel.VERBOSE -> MaterialTheme.colorScheme.onSurfaceVariant
+                            LogLevel.DEBUG -> MaterialTheme.colorScheme.onSurface
+                            LogLevel.INFO -> MaterialTheme.colorScheme.primary
+                            LogLevel.WARN -> MaterialTheme.colorScheme.tertiary
+                            LogLevel.ERROR -> MaterialTheme.colorScheme.error
+                            LogLevel.ASSERT -> MaterialTheme.colorScheme.error
+                            LogLevel.NONE -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+            }
         }
     }
 }

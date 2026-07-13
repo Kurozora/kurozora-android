@@ -16,6 +16,7 @@ import kotlinx.datetime.toLocalDateTime
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.enums.KKScheduleType
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class ScheduleViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -28,6 +29,7 @@ class ScheduleViewModel(
     }
 
     fun fetchSchedule(date: String = "") {
+        KurozoraLogger.debug("[ScheduleViewModel]", "Fetching schedule for date: $date")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.schedule().getSchedule(
@@ -60,6 +62,7 @@ class ScheduleViewModel(
     }
 
     fun fetchScheduleForDay(day: DayOfWeek) {
+        KurozoraLogger.debug("[ScheduleViewModel]", "Fetching schedule for day: $day")
         viewModelScope.launch {
             val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
             val todayDow = today.dayOfWeek

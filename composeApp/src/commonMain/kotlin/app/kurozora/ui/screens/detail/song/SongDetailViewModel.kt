@@ -14,6 +14,7 @@ import kurozorakit.data.enums.KKLibrary
 import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.show.Show
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class SongDetailViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -21,6 +22,7 @@ class SongDetailViewModel(
     private val _state = MutableStateFlow(SongDetailState())
     val state: StateFlow<SongDetailState> = _state.asStateFlow()
     fun fetchSongDetails(songId: String) {
+        KurozoraLogger.debug("[SongDetailViewModel]", "fetchSongDetails: $songId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.song().getSong(
@@ -54,6 +56,7 @@ class SongDetailViewModel(
      * Lazy load: Show
      */
     fun fetchShow(id: String) {
+        KurozoraLogger.debug("[SongDetailViewModel]", "fetchShow: $id")
         if (_state.value.shows.containsKey(id)) return
 
         viewModelScope.launch {
@@ -77,6 +80,7 @@ class SongDetailViewModel(
      * Lazy load: Game
      */
     fun fetchGame(id: String) {
+        KurozoraLogger.debug("[SongDetailViewModel]", "fetchGame: $id")
         if (_state.value.games.containsKey(id)) return
 
         viewModelScope.launch {
@@ -112,13 +116,13 @@ class SongDetailViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[SongDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[SongDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
 
                     when (section) {
                         SectionType.RelatedShows -> {
@@ -147,10 +151,10 @@ class SongDetailViewModel(
                         else -> {}
                     }
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[SongDetailViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[SongDetailViewModel]", "Error updating library status: ${e.localizedMessage}", e)
             }
         }
     }
@@ -174,7 +178,7 @@ class SongDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[SongDetailViewModel]", "Failed to post review for song $songId: $result")
                 }
             }
         }

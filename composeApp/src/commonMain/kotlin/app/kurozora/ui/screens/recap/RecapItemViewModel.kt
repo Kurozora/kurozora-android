@@ -16,12 +16,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
+import kurozorakit.shared.logging.KurozoraLogger
 
 class RecapItemViewModel(private val kurozoraKit: KurozoraKit) : ViewModel() {
     private val _state = MutableStateFlow(RecapItemState())
     val state: StateFlow<RecapItemState> = _state.asStateFlow()
 
     fun fetchRecapDetails(year: String, month: String) {
+        KurozoraLogger.debug("[RecapItemViewModel]", "fetchRecapDetails($year, $month)")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 

@@ -12,6 +12,7 @@ import kurozorakit.data.models.feed.message.FeedMessageIdentity
 import kurozorakit.data.models.feed.message.FeedMessageRequest
 import kurozorakit.data.models.feed.message.update.FeedMessageUpdate
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class FeedViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -24,6 +25,7 @@ class FeedViewModel(
     }
 
     fun loadExploreFeed() {
+        KurozoraLogger.debug("[FeedViewModel]", "Loading explore feed")
         viewModelScope.launch {
             _state.value = FeedState(uiState = FeedUIState.Loading)
             when (val result = kurozoraKit.feed().getExploreFeed()) {
@@ -46,6 +48,7 @@ class FeedViewModel(
     }
 
     fun loadMore() {
+        KurozoraLogger.debug("[FeedViewModel]", "Loading more feed messages")
         val currentState = _state.value
         val currentUIState = currentState.uiState
         val nextPageUrl = when (currentUIState) {
@@ -118,6 +121,7 @@ class FeedViewModel(
     }
 
     fun postMessage() {
+        KurozoraLogger.debug("[FeedViewModel]", "Posting new feed message")
         val content = _state.value.newMessageContent.trim()
         if (content.isEmpty() || _state.value.postingMessage) return
 
@@ -167,6 +171,7 @@ class FeedViewModel(
     }
 
     fun replyToMessage(message: FeedMessage) {
+        KurozoraLogger.debug("[FeedViewModel]", "Replying to message: ${message.id}")
         val content = _state.value.replyContent.trim()
         if (content.isEmpty() || _state.value.postingMessage) return
 
@@ -207,6 +212,7 @@ class FeedViewModel(
     }
 
     fun editMessage(message: FeedMessage) {
+        KurozoraLogger.debug("[FeedViewModel]", "Editing message: ${message.id}")
         val content = _state.value.editContent.trim()
         if (content.isEmpty() || _state.value.postingMessage) return
 
@@ -248,6 +254,7 @@ class FeedViewModel(
     }
 
     fun deleteMessage(messageId: String) {
+        KurozoraLogger.debug("[FeedViewModel]", "Deleting message: $messageId")
         viewModelScope.launch {
             when (val result = kurozoraKit.feed().deleteFeedMessage(messageId)) {
                 is Result.Success -> {
@@ -280,6 +287,7 @@ class FeedViewModel(
     }
 
     fun heartMessage(message: FeedMessage) {
+        KurozoraLogger.debug("[FeedViewModel]", "Toggling heart for message: ${message.id}")
         viewModelScope.launch {
             val isCurrentlyHearted = message.attributes.isHearted ?: false
             val update = FeedMessageUpdate(isHearted = !isCurrentlyHearted)
@@ -304,6 +312,7 @@ class FeedViewModel(
     }
 
     fun reshareMessage(message: FeedMessage) {
+        KurozoraLogger.debug("[FeedViewModel]", "Resharing message: ${message.id}")
         viewModelScope.launch {
             val isCurrentlyPinned = message.attributes.isPinned
 
@@ -372,6 +381,7 @@ class FeedViewModel(
     }
 
     fun loadMessageReplies(messageId: String) {
+        KurozoraLogger.debug("[FeedViewModel]", "Loading replies for message: $messageId")
         viewModelScope.launch {
             try {
                 when (val result = kurozoraKit.feed().getFeedMessageReplies(messageId)) {
@@ -389,6 +399,7 @@ class FeedViewModel(
                     }
                 }
             } catch (e: Exception) {
+                KurozoraLogger.error("[FeedViewModel]", "Failed to load message replies", e)
                 _state.value = _state.value.copy(
                     repliesError = e.message ?: "Unknown error",
                     isLoadingReplies = false
@@ -398,6 +409,7 @@ class FeedViewModel(
     }
 
     fun postReplyToSelectedMessage(content: String) {
+        KurozoraLogger.debug("[FeedViewModel]", "Posting reply to selected message")
         val selectedMessage = _state.value.selectedMessageForDetail
         if (selectedMessage == null || content.trim().isEmpty() || _state.value.postingMessage) return
 

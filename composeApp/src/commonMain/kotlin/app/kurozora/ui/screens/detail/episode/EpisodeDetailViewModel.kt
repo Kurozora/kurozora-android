@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
 import kurozorakit.data.models.episode.Episode
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class EpisodeDetailViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -18,6 +19,7 @@ class EpisodeDetailViewModel(
     private val _state = MutableStateFlow(EpisodeDetailState())
     val state: StateFlow<EpisodeDetailState> = _state.asStateFlow()
     fun fetchEpisodeDetails(episodeId: String) {
+        KurozoraLogger.debug("[EpisodeDetailViewModel]", "fetchEpisodeDetails: $episodeId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.episode().getEpisode(
@@ -55,6 +57,7 @@ class EpisodeDetailViewModel(
      * Lazy load: Episode
      */
     fun fetchSuggestedEpisode(id: String) {
+        KurozoraLogger.debug("[EpisodeDetailViewModel]", "fetchSuggestedEpisode: $id")
         if (_state.value.episodeSuggestions.containsKey(id)) return
 
         viewModelScope.launch {
@@ -75,6 +78,7 @@ class EpisodeDetailViewModel(
     }
 
     fun markEpisodeAsWatched(episodeId: String) {
+        KurozoraLogger.debug("[EpisodeDetailViewModel]", "markEpisodeAsWatched: $episodeId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = kurozoraKit.episode().updateEpisodeWatchStatus(episodeId)
@@ -100,7 +104,7 @@ class EpisodeDetailViewModel(
                     }
                 }
             } catch (e: Exception) {
-                println("❌ Error in markAsWatchedEpisode: ${e.localizedMessage}")
+                KurozoraLogger.error("[EpisodeDetailViewModel]", "Error in markAsWatchedEpisode: ${e.localizedMessage}", e)
             }
         }
     }
@@ -124,7 +128,7 @@ class EpisodeDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[EpisodeDetailViewModel]", "Failed to post review for episode $episodeId: $result")
                 }
             }
         }

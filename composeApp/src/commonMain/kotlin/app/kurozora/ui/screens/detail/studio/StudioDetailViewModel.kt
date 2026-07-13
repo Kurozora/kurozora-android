@@ -15,6 +15,7 @@ import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.literature.Literature
 import kurozorakit.data.models.show.Show
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class StudioDetailViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -22,6 +23,7 @@ class StudioDetailViewModel(
     private val _state = MutableStateFlow(StudioDetailState())
     val state: StateFlow<StudioDetailState> = _state.asStateFlow()
     fun fetchStudioDetails(studioId: String) {
+        KurozoraLogger.debug("[StudioDetailViewModel]", "fetchStudioDetails: $studioId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.studio().getStudio(
@@ -57,6 +59,7 @@ class StudioDetailViewModel(
      * Lazy load: Show
      */
     fun fetchShow(id: String) {
+        KurozoraLogger.debug("[StudioDetailViewModel]", "fetchShow: $id")
         if (_state.value.shows.containsKey(id)) return
 
         viewModelScope.launch {
@@ -80,6 +83,7 @@ class StudioDetailViewModel(
      * Lazy load: Literature
      */
     fun fetchLiterature(id: String) {
+        KurozoraLogger.debug("[StudioDetailViewModel]", "fetchLiterature: $id")
         if (_state.value.literatures.containsKey(id)) return
 
         viewModelScope.launch {
@@ -103,6 +107,7 @@ class StudioDetailViewModel(
      * Lazy load: Game
      */
     fun fetchGame(id: String) {
+        KurozoraLogger.debug("[StudioDetailViewModel]", "fetchGame: $id")
         if (_state.value.games.containsKey(id)) return
 
         viewModelScope.launch {
@@ -138,13 +143,13 @@ class StudioDetailViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[StudioDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[StudioDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
 
                     when (section) {
                         SectionType.RelatedShows -> {
@@ -185,10 +190,10 @@ class StudioDetailViewModel(
                         else -> {}
                     }
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[StudioDetailViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[StudioDetailViewModel]", "Error updating library status: ${e.localizedMessage}", e)
             }
         }
     }
@@ -212,7 +217,7 @@ class StudioDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[StudioDetailViewModel]", "Failed to post review for studio $studioId: $result")
                 }
             }
         }

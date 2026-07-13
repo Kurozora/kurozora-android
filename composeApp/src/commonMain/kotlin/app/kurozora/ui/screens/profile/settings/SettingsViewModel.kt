@@ -16,10 +16,13 @@ import kurozorakit.data.enums.TVRating
 import kurozorakit.data.models.media.Media
 import kurozorakit.data.models.user.User
 import kurozorakit.data.models.user.update.UserUpdate
+import kurozorakit.shared.logging.KurozoraLogger
+import kurozorakit.shared.logging.MemoryBufferSink
 
 class SettingsViewModel(
     private val kurozoraKit: KurozoraKit,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val memoryBufferSink: MemoryBufferSink
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -77,10 +80,15 @@ class SettingsViewModel(
             SettingsEvent.EnableTwoFactor -> { /* 2FA aktifleştirme */ }
             SettingsEvent.LogoutOtherSessions -> { /* Session kapatma */ }
             SettingsEvent.DeleteAccount -> { /* Hesap silme uyarı dialogu tetikleme */ }
+
+            SettingsEvent.ClearLogBuffer -> {
+                memoryBufferSink.clear()
+            }
         }
     }
 
     private fun saveField(userUpdate: UserUpdate) {
+        KurozoraLogger.debug("[SettingsViewModel]", "saveField()")
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true) }
             kurozoraKit.user().updateMyProfile(update = userUpdate).
@@ -121,7 +129,7 @@ class SettingsViewModel(
                     userJson = newUserJson
                 )
             }.onError { error ->
-                println("$userUpdate failed to save: $error")
+                KurozoraLogger.error("[SettingsViewModel]", "saveField failed", error)
                 _state.update { it.copy(isSaving = false, errorMessage = "Failed to save: $error") }
             }
         }
@@ -136,21 +144,21 @@ class SettingsViewModel(
     }
 
     private fun importLibraryFile() {
+        KurozoraLogger.debug("[SettingsViewModel]", "importLibraryFile()")
         viewModelScope.launch {
             val file = _state.value.importLibraryFile
             if (file != null) {
                 try {
                     val content = file.readString()
-                    println("File content loaded. Length: ${content.length}")
-                    println("First 200 chars: ${content.take(200)}")
+                    KurozoraLogger.debug("[SettingsViewModel]", "File content loaded. Length: ${content.length}")
+                    KurozoraLogger.debug("[SettingsViewModel]", "First 200 chars: ${content.take(200)}")
 
                     _state.update { it.copy(importLibraryFileContent = content) }
 
-                    // State güncellendi mi kontrol et
-                    println("State updated. New content length: ${_state.value.importLibraryFileContent?.length}")
+                    KurozoraLogger.debug("[SettingsViewModel]", "State updated. New content length: ${_state.value.importLibraryFileContent?.length}")
 
                 } catch (e: Exception) {
-                    println("Error reading file: ${e.message}")
+                    KurozoraLogger.error("[SettingsViewModel]", "Error reading file", e)
                     _state.update { it.copy(errorMessage = "Failed to read file: ${e.message}") }
                 }
             }
@@ -158,6 +166,7 @@ class SettingsViewModel(
     }
 
     private fun startLibraryImport() {
+        KurozoraLogger.debug("[SettingsViewModel]", "startLibraryImport()")
         viewModelScope.launch {
             val file = _state.value.importLibraryFile
             if (file != null) {

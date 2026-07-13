@@ -47,6 +47,9 @@ import kurozorakit.data.models.search.filters.PersonFilter
 import kurozorakit.data.models.search.filters.ShowFilter
 import kurozorakit.data.models.search.filters.StudioFilter
 import kurozorakit.shared.UserAgent
+import kurozorakit.shared.logging.KurozoraLogger
+import kurozorakit.shared.logging.LogLevel
+import kurozorakit.shared.logging.MemoryBufferSink
 import kurozorakit.store.DatabaseDriverFactory
 import kurozorakit.store.JvmDatabaseDriverFactory
 import org.koin.compose.viewmodel.dsl.viewModel
@@ -67,6 +70,8 @@ object KurozoraTokenProvider : TokenProvider {
 }
 
 fun commonModule() = module {
+    single { MemoryBufferSink(capacity = 1000) }
+
     single {
         val driverFactory: DatabaseDriverFactory = get()
         KurozoraKit.Builder()
@@ -76,11 +81,13 @@ fun commonModule() = module {
             .platform(getPlatform())
             .userAgent(UserAgent(appName = "KtorClient", appVersion = "1.0.0", appID = "com.seloreis.kurozora", platformName = getPlatform().platform, platformVersion = getPlatform().platformVersion))
             .databaseDriverFactory(driverFactory)
+            .logLevel(LogLevel.DEBUG)
+            .customSink(get<MemoryBufferSink>())
             .build()
     }
 
-    single<Settings> { Settings() } // JVM’de in-memory veya file-backed
-    single { SettingsManager(get()) }          // factory yok
+    single<Settings> { Settings() }
+    single { SettingsManager(get()) }
     single { AccountManager(get()) }
 
     viewModel { MainViewModel(kit = get(), accountManager = get()) }
@@ -104,7 +111,7 @@ fun commonModule() = module {
     viewModel { ReminderViewModel(kurozoraKit = get()) }
     viewModel { ScheduleViewModel(kurozoraKit = get()) }
     viewModel { AirSeasonViewModel(kurozoraKit = get()) }
-    viewModel { SettingsViewModel(kurozoraKit = get(), accountManager = get()) }
+    viewModel { SettingsViewModel(kurozoraKit = get(), accountManager = get(), memoryBufferSink = get()) }
     viewModel { RecapItemViewModel(kurozoraKit = get()) }
 
     viewModel { (filter: ShowFilter?) ->

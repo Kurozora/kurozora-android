@@ -23,6 +23,7 @@ import kurozorakit.data.models.show.song.ShowSong
 import kurozorakit.data.models.staff.Staff
 import kurozorakit.data.models.studio.Studio
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 import kotlin.uuid.ExperimentalUuidApi
 
 enum class SectionType {
@@ -44,6 +45,7 @@ class ShowDetailViewModel(
      */
     @OptIn(ExperimentalUuidApi::class)
     fun fetchShowDetails(showId: String) {
+        KurozoraLogger.debug("[ShowDetailViewModel]", "fetchShowDetails: $showId")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             val result = kurozoraKit.show().getShow(
@@ -88,6 +90,7 @@ class ShowDetailViewModel(
      * Lazy load için cast fetch
      */
     fun fetchCast(id: String) {
+        KurozoraLogger.debug("[ShowDetailViewModel]", "fetchCast: $id")
         if (_state.value.cast.containsKey(id)) return
 
         viewModelScope.launch {
@@ -111,6 +114,7 @@ class ShowDetailViewModel(
      * Lazy load için season fetch
      */
     fun fetchSeason(id: String) {
+        KurozoraLogger.debug("[ShowDetailViewModel]", "fetchSeason: $id")
         if (_state.value.seasons.containsKey(id)) return
 
         viewModelScope.launch {
@@ -131,6 +135,7 @@ class ShowDetailViewModel(
     }
 
     fun fetchStudio(id: String) {
+        KurozoraLogger.debug("[ShowDetailViewModel]", "fetchStudio: $id")
         if (_state.value.studios.containsKey(id)) return
 
         viewModelScope.launch {
@@ -151,6 +156,7 @@ class ShowDetailViewModel(
     }
 
     fun fetchMoreByStudioShow(id: String) {
+        KurozoraLogger.debug("[ShowDetailViewModel]", "fetchMoreByStudioShow: $id")
         if (_state.value.moreByStudio.containsKey(id)) return
 
         viewModelScope.launch {
@@ -187,13 +193,13 @@ class ShowDetailViewModel(
                 }
 
                 if (kind == null) {
-                    println("⚠️ Unsupported type for library update: $type")
+                    KurozoraLogger.warning("[ShowDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result is Result.Success) {
-                    println("✅ Library status updated for $type ($itemId) → $newStatus")
+                    KurozoraLogger.info("[ShowDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
 
                     when (section) {
                         SectionType.MainShow -> {
@@ -256,10 +262,10 @@ class ShowDetailViewModel(
                         }
                     }
                 } else {
-                    println("⚠️ Failed to update library status for $itemId: $result")
+                    KurozoraLogger.warning("[ShowDetailViewModel]", "Failed to update library status for $itemId: $result")
                 }
             } catch (e: Exception) {
-                println("❌ Error updating library status: ${e.localizedMessage}")
+                KurozoraLogger.error("[ShowDetailViewModel]", "Error updating library status: ${e.localizedMessage}", e)
             }
         }
     }
@@ -284,7 +290,7 @@ class ShowDetailViewModel(
                 .updateMyFavorites(KKLibrary.Kind.SHOWS, modelId)
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
-                println("❌ Favorite update failed: $result")
+                KurozoraLogger.error("[ShowDetailViewModel]", "Favorite update failed: $result")
                 // rollback
                 _state.update {
                     it.copy(
@@ -296,7 +302,7 @@ class ShowDetailViewModel(
                     )
                 }
             } else {
-                println("✅ Favorite updated successfully")
+                KurozoraLogger.info("[ShowDetailViewModel]", "Favorite updated successfully")
             }
         }
     }
@@ -323,7 +329,7 @@ class ShowDetailViewModel(
                 .updateReminderStatus(KKLibrary.Kind.SHOWS, modelId)
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
-                println("❌ Reminder status update failed: $result")
+                KurozoraLogger.error("[ShowDetailViewModel]", "Reminder status update failed: $result")
 
                 _state.update {
                     it.copy(
@@ -337,7 +343,7 @@ class ShowDetailViewModel(
                     )
                 }
             } else {
-                println("✅ Reminder updated successfully")
+                KurozoraLogger.info("[ShowDetailViewModel]", "Reminder updated successfully")
             }
         }
     }
@@ -361,7 +367,7 @@ class ShowDetailViewModel(
                 }
 
                 is Result.Error -> {
-
+                    KurozoraLogger.error("[ShowDetailViewModel]", "Failed to post review for show $showId: $result")
                 }
             }
         }

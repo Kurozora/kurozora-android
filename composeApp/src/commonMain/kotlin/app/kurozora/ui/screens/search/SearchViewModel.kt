@@ -38,6 +38,7 @@ import kurozorakit.data.models.song.Song
 import kurozorakit.data.models.studio.Studio
 import kurozorakit.data.models.user.User
 import kurozorakit.shared.Result
+import kurozorakit.shared.logging.KurozoraLogger
 
 class SearchViewModel(
     private val kurozoraKit: KurozoraKit,
@@ -50,6 +51,7 @@ class SearchViewModel(
 
     // 🆕 Suggestions'ları çek
     fun fetchSuggestions(query: String) {
+        KurozoraLogger.debug("[SearchViewModel]", "fetchSuggestions: query=$query")
         suggestionJob?.cancel()
 
         suggestionJob = viewModelScope.launch {
@@ -77,7 +79,7 @@ class SearchViewModel(
                 }
                 is Result.Error -> {
                     // Suggestions hatasını gösterme, sessizce hata al
-                    println("Suggestions error: ${result.error.message}")
+                    KurozoraLogger.warning("[SearchViewModel]", "Suggestions error: ${result.error.message}")
                     _state.update { it.copy(suggestions = emptyList()) }
                 }
             }
@@ -176,6 +178,7 @@ class SearchViewModel(
         types: List<KKSearchType>,
         filter: KKSearchFilter? = null
     ) {
+        KurozoraLogger.debug("[SearchViewModel]", "performSearch: query=$query, types=$types")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -296,6 +299,7 @@ class SearchViewModel(
     )
 
     fun loadMore(type: KKSearchType) {
+        KurozoraLogger.debug("[SearchViewModel]", "loadMore: type=$type")
         // 🆕 Sadece seçili tip varsa load more yap
         if (!_state.value.selectedTypes.contains(type) && _state.value.activeType != type) {
             return
@@ -581,6 +585,7 @@ class SearchViewModel(
         newStatus: KKLibrary.Status,
         type: ItemType,
     ) {
+        KurozoraLogger.debug("[SearchViewModel]", "updateLibraryStatus: itemId=$itemId, newStatus=$newStatus, type=$type")
         viewModelScope.launch {
             // 1) Type → Kind çevir
             val kind = when (type) {
@@ -597,11 +602,11 @@ class SearchViewModel(
                 val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
 
                 if (result !is Result.Success) {
-                    println("⚠️ Failed to update status ($itemId → $newStatus): $result")
+                    KurozoraLogger.warning("[SearchViewModel]", "Failed to update status ($itemId → $newStatus): $result")
                     return@launch
                 }
 
-                println("✅ Library updated ($itemId → $newStatus)")
+                KurozoraLogger.info("[SearchViewModel]", "Library updated ($itemId → $newStatus)")
 
                 _state.update { state ->
                     when (type) {
@@ -651,22 +656,23 @@ class SearchViewModel(
                     }
                 }
             } catch (e: Exception) {
-                println("❌ updateLibraryStatus error: ${e.localizedMessage}")
+                KurozoraLogger.error("[SearchViewModel]", "updateLibraryStatus error", e)
             }
         }
     }
 
     fun markEpisodeAsWatched(episodeId: String) {
+        KurozoraLogger.debug("[SearchViewModel]", "markEpisodeAsWatched: episodeId=$episodeId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // 1️⃣ API çağrısı
                 val result = kurozoraKit.episode().updateEpisodeWatchStatus(episodeId)
                 if (result !is Result.Success) {
-                    println("⚠️ Failed to mark episode as watched: $result")
+                    KurozoraLogger.warning("[SearchViewModel]", "Failed to mark episode as watched: $result")
                     return@launch
                 }
                 val watchStatus = result.data.data.watchStatus
-                println("✅ Episode marked as watched: $episodeId → Watch Status: $watchStatus")
+                KurozoraLogger.info("[SearchViewModel]", "Episode marked as watched: $episodeId → Watch Status: $watchStatus")
                 // 2️⃣ Eğer state.episodes map’inde varsa güncelle
                 _state.update { state ->
                     val currentEpisode = state.episodes[episodeId]
@@ -682,21 +688,22 @@ class SearchViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("❌ Error marking episode watched: ${e.localizedMessage}")
+                KurozoraLogger.error("[SearchViewModel]", "Error marking episode watched", e)
             }
         }
     }
 
     fun followUser(userId: String) {
+        KurozoraLogger.debug("[SearchViewModel]", "followUser: userId=$userId")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = kurozoraKit.auth().updateFollowStatus(userId)
                 if (result !is Result.Success) {
-                    println("⚠️ Failed to update follow status for $userId: $result")
+                    KurozoraLogger.warning("[SearchViewModel]", "Failed to update follow status for $userId: $result")
                     return@launch
                 }
                 val newStatus = result.data.data.followStatus
-                println("✅ Follow status updated for $userId → $newStatus")
+                KurozoraLogger.info("[SearchViewModel]", "Follow status updated for $userId → $newStatus")
                 // 1️⃣ Eğer state.users map’inde varsa güncelle
                 _state.update { state ->
                     val currentUser = state.users[userId] ?: return@update state
@@ -711,7 +718,7 @@ class SearchViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("❌ Error followUser: ${e.localizedMessage}")
+                KurozoraLogger.error("[SearchViewModel]", "Error followUser", e)
             }
         }
     }
