@@ -276,7 +276,6 @@ tasks.register("generateAppIconResources") {
         val ids = allAppIcons.map { it.id to it.relPath }
 
         val xxxhdpiDir = file("$generatedResDir/mipmap-xxxhdpi")
-        val anydpiDir = file("$generatedResDir/mipmap-anydpi-v26")
 
         // ── 1. Generate mipmap resources ──
         ids.forEach { (id, relPath) ->
@@ -286,28 +285,11 @@ tasks.register("generateAppIconResources") {
                 throw GradleException("Icon source file not found: ${srcFile.path}")
             }
 
-            // Pre-v26 fallback: full icon bitmap
+            // Copy full icon bitmap (used directly without adaptive-icon wrapper
+            // to avoid the system's 72% safe-zone shrinking)
             val destWebp = file("$xxxhdpiDir/ic_app_$safeId.webp")
             destWebp.parentFile.mkdirs()
             srcFile.copyTo(destWebp, overwrite = true)
-
-            // Foreground layer for adaptive-icon (v26+): same full icon used as foreground
-            val destForeground = file("$xxxhdpiDir/ic_app_${safeId}_foreground.webp")
-            srcFile.copyTo(destForeground, overwrite = true)
-
-            val background = "@color/ic_launcher_background"
-            val foregroundRef = "@mipmap/ic_app_${safeId}_foreground"
-
-            // Regular and round adaptive-icon wrappers (v26+)
-            listOf("ic_app_$safeId", "ic_app_${safeId}_round").forEach { name ->
-                val xmlFile = file("$anydpiDir/$name.xml")
-                xmlFile.parentFile.mkdirs()
-                xmlFile.writeText("""<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="$background" />
-    <foreground android:drawable="$foregroundRef" />
-</adaptive-icon>""")
-            }
         }
 
         // ── 2. Generate AndroidManifest with aliases ──
