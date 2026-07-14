@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import app.kurozora.core.icons.getDisplayNameForIcon
 import app.kurozora.core.settings.AccountScopedSettings
 import app.kurozora.ui.screens.library.imports.MALImport
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
@@ -295,12 +296,15 @@ fun generateSettingsCategories(
             subtitle = "Customize your app appearance.",
             icon = { Icon(Icons.Default.Palette, contentDescription = "Appearance") },
             items = listOf(
-                SettingItem.SingleSelectSetting(
+                SettingItem.CustomSetting(
                     key = AccountScopedSettings.APP_ICON_KEY,
                     title = "App Icon",
-                    subtitle = "Choose your app icon.",
-                    options = listOf("default", "halloween", "kuro-chan"),
-                    selected = scopedSettings.icon
+                    subtitle = getDisplayNameForIcon(scopedSettings.icon),
+                    isFullDialog = true,
+                    contentWithState = {
+                        AppIconPickerContent(scopedSettings)
+                    },
+                    content = null,
                 ),
                 SettingItem.SingleSelectSetting(
                     key = "timezone_selection",
