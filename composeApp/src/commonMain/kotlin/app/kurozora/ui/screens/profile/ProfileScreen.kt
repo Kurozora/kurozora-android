@@ -20,9 +20,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +62,7 @@ import app.kurozora.ui.components.cards.LiteratureCard
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import kurozora.composeapp.generated.resources.Res
+import kurozorakit.data.enums.BlockStatus
 import kurozorakit.data.enums.FollowStatus
 import kurozorakit.data.models.user.User
 import org.jetbrains.compose.resources.decodeToImageBitmap
@@ -203,32 +208,109 @@ fun ProfileScreen(
                             userDetail.attributes.followStatus
                         )
                     }
-                    // Eğer state.followStatus sonradan güncellenirse, bunu da takip et
+                    var blockStatus by remember {
+                        mutableStateOf(
+                            userDetail.attributes.blockStatus
+                        )
+                    }
+                    // Eğer state değerleri sonradan güncellenirse, bunu da takip et
                     LaunchedEffect(state.followStatus) {
                         state.followStatus?.let {
                             followStatus = it
                         }
                     }
-                    // Follow / Unfollow button (sağ altta)
+                    LaunchedEffect(state.blockStatus) {
+                        state.blockStatus?.let {
+                            blockStatus = it
+                        }
+                    }
+                    // Follow / Unfollow button + more menu (sağ altta)
                     if (!isCurrentUser) {
-                        Button(
-                            onClick = { viewModel.followUser(user.id) },
-                            shape = RoundedCornerShape(50),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
+                        var showMenu by remember { mutableStateOf(false) }
+                        val isBlocked = blockStatus == BlockStatus.BLOCKED
+
+                        Row(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .offset(x = (-16).dp, y = 60.dp)
-                                .height(38.dp)
+                                .offset(x = (-16).dp, y = 60.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = when (followStatus) {
-                                    FollowStatus.followed -> "FOLLOWING"
-                                    //FollowStatus.pending -> "PENDING"
-                                    else -> "FOLLOW"
-                                },
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (isBlocked) {
+                                Button(
+                                    onClick = { viewModel.blockUser(user.id) },
+                                    shape = RoundedCornerShape(50),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ),
+                                    modifier = Modifier.height(38.dp)
+                                ) {
+                                    Text(
+                                        text = "UNBLOCK",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            } else {
+                                Button(
+                                    onClick = { viewModel.followUser(user.id) },
+                                    shape = RoundedCornerShape(50),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
+                                    modifier = Modifier.height(38.dp)
+                                ) {
+                                    Text(
+                                        text = when (followStatus) {
+                                            FollowStatus.followed -> "FOLLOWING"
+                                            else -> "FOLLOW"
+                                        },
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            Box {
+                                IconButton(
+                                    onClick = { showMenu = true },
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.2f))
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "More options",
+                                        tint = Color.White
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Block,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp),
+                                                    tint = MaterialTheme.colorScheme.error
+                                                )
+                                                Spacer(Modifier.size(8.dp))
+                                                Text(
+                                                    if (isBlocked) "Unblock User"
+                                                    else "Block User"
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            showMenu = false
+                                            viewModel.blockUser(user.id)
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }

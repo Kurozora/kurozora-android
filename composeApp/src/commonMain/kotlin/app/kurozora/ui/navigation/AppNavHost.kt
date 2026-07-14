@@ -42,6 +42,7 @@ import app.kurozora.ui.screens.list.character.*
 import app.kurozora.ui.screens.list.game.*
 import app.kurozora.ui.screens.list.literature.*
 import app.kurozora.ui.screens.list.person.*
+import app.kurozora.ui.screens.list.profile.BlockedUsersScreen
 import app.kurozora.ui.screens.list.profile.*
 import app.kurozora.ui.screens.list.show.*
 import app.kurozora.ui.screens.list.song.SongAnimeListScreen
@@ -328,7 +329,20 @@ fun AppNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToLoginScreen = {
                     navController.navigate(Screen.Login.route)
-                }
+                },
+                onNavigateToBlockedUsers = {
+                    navController.navigate(Screen.BlockedUsers.route)
+                },
+            )
+        }
+
+        composable(Screen.BlockedUsers.route) {
+            BlockedUsersScreen(
+                windowWidth = windowSize.windowWidthSizeClass,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToItemDetail = { item ->
+                    navController.navigateToItemDetail(item)
+                },
             )
         }
 

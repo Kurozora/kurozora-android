@@ -332,6 +332,9 @@ fun ItemListScreen(
                                             onFollowButtonClick = {
                                                 viewModel.followUser(user.id)
                                             },
+                                            onBlockButtonClick = {
+                                                viewModel.blockUser(it)
+                                            },
                                             modifier = Modifier.fillMaxWidth())
                                     } ?: ItemPlaceholder()
 

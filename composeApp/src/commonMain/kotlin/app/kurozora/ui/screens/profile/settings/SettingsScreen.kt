@@ -92,13 +92,14 @@ fun SettingsScreen(
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
     onNavigateToLoginScreen: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit = {},
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val accountManager: AccountManager = koinInject()
     val scopedSettings = accountManager.getScopedSettings()!!
     val categories = remember(state) {
-        generateSettingsCategories(scopedSettings, state, viewModel::onEvent)
+        generateSettingsCategories(scopedSettings, state, viewModel::onEvent, onNavigateToBlockedUsers)
     }
     var selectedCategory by remember { mutableStateOf(categories.firstOrNull()) }
     val isLargeScreen = windowWidth == WindowWidthSizeClass.EXPANDED
@@ -280,6 +281,7 @@ fun SettingsItemRow(
             .clickable {
                 when (item) {
                     is SettingItem.CustomSetting -> {
+                        item.onClick?.invoke()
                         if (item.isFullDialog) {
                             showDialog = true     // sadece custom + fullscreen
                         }
@@ -295,8 +297,8 @@ fun SettingsItemRow(
         // Inline UI only when NOT fullscreen
         when (item) {
             is SettingItem.CustomSetting -> {
-                if (!item.isFullDialog) {
-                    item.content?.invoke()
+                if (!item.isFullDialog && item.content != null) {
+                    item.content.invoke()
                 } else {
                     Column(Modifier.padding(16.dp)) {
                         Text(item.title)

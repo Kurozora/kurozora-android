@@ -181,7 +181,8 @@ sealed class SettingItem(
         override val subtitle: String? = null,
         val contentWithState: @Composable (SettingsState) -> Unit = {},  // Yeni isim - state parametreli
         override val content: @Composable (() -> Unit)? = null,  // override ediyoruz, null olabilir
-        val isFullDialog: Boolean = false
+        val isFullDialog: Boolean = false,
+        val onClick: (() -> Unit)? = null,
     ) : SettingItem(key, title, subtitle, content)
 
     data class TextInputSetting(
@@ -224,7 +225,8 @@ sealed class SettingItem(
 fun generateSettingsCategories(
     scopedSettings: AccountScopedSettings,
     state: SettingsState,
-    onEvent: (SettingsEvent) -> Unit
+    onEvent: (SettingsEvent) -> Unit,
+    onNavigateToBlockedUsers: () -> Unit = {},
 ): List<SettingsCategory> {
     return listOf(
         SettingsCategory(
@@ -267,6 +269,13 @@ fun generateSettingsCategories(
                     isMultiline = true,
                     value = state.bio,
                     onValueChanged = { onEvent(SettingsEvent.UpdateBio(it)) }
+                ),
+                SettingItem.CustomSetting(
+                    key = "blocked_users",
+                    title = "Blocked Users",
+                    subtitle = "Manage users you have blocked",
+                    onClick = onNavigateToBlockedUsers,
+                    content = null,
                 )
             )
         ),

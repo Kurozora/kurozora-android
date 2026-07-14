@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import kurozorakit.data.enums.BlockStatus
 import kurozorakit.data.enums.FollowStatus
 import kurozorakit.data.models.user.User
 
@@ -31,8 +32,12 @@ fun UserCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     followStatus: FollowStatus = user.attributes.followStatus,
+    blockStatus: BlockStatus = user.attributes.blockStatus,
     onFollowButtonClick: (String) -> Unit,
+    onBlockButtonClick: ((String) -> Unit)? = null,
 ) {
+    val isBlocked = blockStatus == BlockStatus.BLOCKED
+
     Row(
         modifier = modifier
             .width(300.dp)
@@ -41,7 +46,6 @@ fun UserCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Profil resmi
         KamelImage(
             { asyncPainterResource(user.attributes.profile?.url ?: "") },
             contentDescription = "${user.attributes.username} avatar",
@@ -51,30 +55,42 @@ fun UserCard(
             contentScale = ContentScale.Crop,
             alpha = DefaultAlpha
         )
-        // Kullanıcı adı
         Text(
             text = user.attributes.username,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             modifier = Modifier.weight(1f)
         )
-        // Follow / Unfollow butonu
-        val isFollowing = followStatus == FollowStatus.followed
-        val buttonText = if (isFollowing) "Unfollow" else "Follow"
-
-        Button(
-            onClick = { onFollowButtonClick(user.id) },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isFollowing)
-                    MaterialTheme.colorScheme.secondaryContainer
-                else
-                    MaterialTheme.colorScheme.primary
-            ),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = buttonText,
-                style = MaterialTheme.typography.labelLarge
-            )
+        if (isBlocked && onBlockButtonClick != null) {
+            Button(
+                onClick = { onBlockButtonClick(user.id) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "Unblock",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        } else {
+            val isFollowing = followStatus == FollowStatus.followed
+            val buttonText = if (isFollowing) "Unfollow" else "Follow"
+            Button(
+                onClick = { onFollowButtonClick(user.id) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isFollowing)
+                        MaterialTheme.colorScheme.secondaryContainer
+                    else
+                        MaterialTheme.colorScheme.primary
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = buttonText,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
         }
     }
 }

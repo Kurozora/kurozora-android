@@ -1,5 +1,6 @@
 package app.kurozora.ui.screens.profile
 
+import kurozorakit.data.enums.BlockStatus
 import kurozorakit.data.enums.FollowStatus
 import kurozorakit.data.models.game.Game
 import kurozorakit.data.models.literature.Literature
@@ -15,6 +16,7 @@ data class ProfileState(
     val favoriteLiteratures: List<Literature> = emptyList(),
     val favoriteGames: List<Game> = emptyList(),
     val followStatus: FollowStatus? = null,
+    val blockStatus: BlockStatus? = null,
     val loadingItems: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,

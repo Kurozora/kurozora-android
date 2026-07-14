@@ -50,6 +50,8 @@ class ProfileViewModel(
                 _state.update {
                     it.copy(
                         user = user,
+                        followStatus = user.attributes.followStatus,
+                        blockStatus = user.attributes.blockStatus,
                         showsLibrary = showsLibrary.getOrNull()?.data?.shows ?: emptyList(),
                         literaturesLibrary = literaturesLibrary.getOrNull()?.data?.literatures
                             ?: emptyList(),
@@ -72,6 +74,17 @@ class ProfileViewModel(
         viewModelScope.launch {
             kurozoraKit.auth().updateFollowStatus(userId).onSuccess { res ->
                 _state.update { it.copy(followStatus = res.data.followStatus) }
+            }
+        }
+    }
+
+    fun blockUser(userId: String) {
+        KurozoraLogger.debug("[ProfileViewModel]", "blockUser($userId)")
+        viewModelScope.launch {
+            kurozoraKit.auth().updateBlockStatus(userId).onSuccess { res ->
+                val newStatus = res.data.blockStatus
+                KurozoraLogger.debug("[ProfileViewModel]", "blockUser success: $newStatus")
+                _state.update { it.copy(blockStatus = newStatus) }
             }
         }
     }

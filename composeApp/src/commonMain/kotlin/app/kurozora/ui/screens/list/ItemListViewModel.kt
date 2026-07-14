@@ -247,6 +247,40 @@ class ItemListViewModel(
         }
     }
 
+    fun blockUser(userId: String) {
+        KurozoraLogger.debug("[ItemListViewModel]", "blockUser: userId=$userId")
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = kurozoraKit.auth().updateBlockStatus(userId)
+
+                if (result !is Result.Success) {
+                    KurozoraLogger.warning("[ItemListViewModel]", "Failed to update block status for $userId: $result")
+                    return@launch
+                }
+                val newStatus = result.data.data.blockStatus
+                KurozoraLogger.info("[ItemListViewModel]", "Block status updated for $userId → $newStatus")
+                val current = _state.value.items[userId] ?: return@launch
+                val updatedUser = when (current) {
+                    is kurozorakit.data.models.user.User -> {
+                        current.copy(
+                            attributes = current.attributes.copy(
+                                _blockStatus = newStatus
+                            )
+                        )
+                    }
+                    else -> current
+                }
+                _state.update { state ->
+                    state.copy(
+                        items = state.items + (userId to updatedUser)
+                    )
+                }
+            } catch (e: Exception) {
+                KurozoraLogger.error("[ItemListViewModel]", "Error blockUser", e)
+            }
+        }
+    }
+
     fun followUser(userId: String) {
         KurozoraLogger.debug("[ItemListViewModel]", "followUser: userId=$userId")
         viewModelScope.launch(Dispatchers.IO) {
