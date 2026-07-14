@@ -79,6 +79,11 @@ sealed class Screen(
 
     object Notification : Screen("notifications", "Notifications", Icons.Filled.Notifications, Icons.Outlined.Notifications)
     object Login : Screen("login", "Login")
+    object TwoFactorChallenge : Screen("twoFactorChallenge/{challengeToken}", "Two-Factor Authentication") {
+        fun createRoute(challengeToken: String): String {
+            return "twoFactorChallenge/$challengeToken"
+        }
+    }
     object Favorite : Screen("favorite", "Favorite")
     object Reminder : Screen("reminder", "Reminder")
     object AirSeason : Screen("airseason", "Air Season")

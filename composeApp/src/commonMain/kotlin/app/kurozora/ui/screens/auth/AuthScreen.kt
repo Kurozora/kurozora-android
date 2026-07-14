@@ -55,6 +55,7 @@ fun AuthScreen(
     windowWidth: WindowWidthSizeClass,
     onNavigateBack: () -> Unit,
     onAuthSuccess: () -> Unit,
+    onNavigateToTwoFactor: (String) -> Unit = {},
     viewModel: AuthViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -182,7 +183,7 @@ fun AuthScreen(
 
                 Button(
                     onClick = {
-                        if (currentMode == AuthMode.LOGIN) viewModel.login(onAuthSuccess)
+                        if (currentMode == AuthMode.LOGIN) viewModel.login(onAuthSuccess, onNavigateToTwoFactor)
                         else viewModel.signup(onAuthSuccess)
                     },
                     modifier = Modifier

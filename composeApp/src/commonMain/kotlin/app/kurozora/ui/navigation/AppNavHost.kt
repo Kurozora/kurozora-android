@@ -23,6 +23,7 @@ import androidx.window.core.layout.WindowSizeClass
 import app.kurozora.core.settings.AccountManager
 import app.kurozora.ui.screens.airseason.AirSeasonScreen
 import app.kurozora.ui.screens.auth.AuthScreen
+import app.kurozora.ui.screens.auth.TwoFactorScreen
 import app.kurozora.ui.screens.detail.CharacterDetailScreen
 import app.kurozora.ui.screens.detail.EpisodeDetailScreen
 import app.kurozora.ui.screens.detail.GameDetailScreen
@@ -262,6 +263,9 @@ fun AppNavHost(
                     onAuthSuccess = {
                         navController.navigate(Screen.Explore.route)
                     },
+                    onNavigateToTwoFactor = { token ->
+                        navController.navigate(Screen.TwoFactorChallenge.createRoute(token))
+                    },
                 )
             } else {
                 val encoded = NavType.StringType.get(backStackEntry.arguments!!, "userJson")
@@ -339,8 +343,31 @@ fun AppNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onAuthSuccess = {
                     navController.navigate(Screen.Explore.route)
-                }
+                },
+                onNavigateToTwoFactor = { token ->
+                    navController.navigate(Screen.TwoFactorChallenge.createRoute(token))
+                },
             )
+        }
+
+        composable(
+            route = "${Screen.TwoFactorChallenge.route}",
+            arguments = listOf(
+                navArgument("challengeToken") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val challengeToken = NavType.StringType.get(backStackEntry.arguments!!, "challengeToken")
+            if (challengeToken != null) {
+                TwoFactorScreen(
+                    challengeToken = challengeToken,
+                    onNavigateBack = { navController.popBackStack() },
+                    onSuccess = {
+                        navController.navigate(Screen.Explore.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
         }
 //        composable("upcoming-shows") {
 //            UpcomingShowsScreen(

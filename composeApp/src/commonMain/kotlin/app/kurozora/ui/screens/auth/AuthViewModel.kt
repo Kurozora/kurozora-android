@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kurozorakit.core.KurozoraKit
+import kurozorakit.data.models.misc.SignInResult
 import kurozorakit.shared.logging.KurozoraLogger
 
 class AuthViewModel(
@@ -31,23 +32,62 @@ class AuthViewModel(
         _state.value = _state.value.copy(confirmPassword = password)
     }
 
-    fun login(onSuccess: () -> Unit) {
+    fun onTwoFactorCodeChanged(code: String) {
+        _state.value = _state.value.copy(twoFactorCode = code)
+    }
+
+    fun login(onSuccess: () -> Unit, onNavigateToTwoFactor: (String) -> Unit = {}) {
         KurozoraLogger.debug("[AuthViewModel]", "Login initiated")
         val s = _state.value
         if (s.email.isBlank() || s.password.isBlank()) {
             _state.value = s.copy(errorMessage = "Email and password cannot be empty")
             return
         }
-        _state.value = s.copy(isLoading = true, errorMessage = null)
+        _state.value = s.copy(isLoading = true, errorMessage = null, challengeToken = null)
         viewModelScope.launch {
             try {
                 kurozoraKit.auth().signIn(email = s.email, password = s.password)
-                    .onSuccess { onSuccess() }
+                    .onSuccess { result ->
+                        _state.value = _state.value.copy(isLoading = false)
+                        when (result) {
+                            is SignInResult.SignedIn -> onSuccess()
+                            is SignInResult.RequiresTwoFactor -> {
+                                onNavigateToTwoFactor(result.challengeToken)
+                            }
+                        }
+                    }
                     .onError { e -> _state.value = _state.value.copy(errorMessage = e.message, isLoading = false) }
             } catch (e: Exception) {
                 KurozoraLogger.error("[AuthViewModel]", "Login failed", e)
                 _state.value = _state.value.copy(
                     errorMessage = e.message ?: "Login failed", isLoading = false
+                )
+            }
+        }
+    }
+
+    fun submitTwoFactorChallenge(onSuccess: () -> Unit) {
+        val s = _state.value
+        val token = s.challengeToken ?: return
+        val code = s.twoFactorCode
+        if (code.isBlank()) {
+            _state.value = s.copy(errorMessage = "Please enter the verification code")
+            return
+        }
+        _state.value = s.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            try {
+                kurozoraKit.auth().submitTwoFactorChallenge(challengeToken = token, otp = code)
+                    .onSuccess { onSuccess() }
+                    .onError { e ->
+                        _state.value = _state.value.copy(
+                            errorMessage = e.message, isLoading = false
+                        )
+                    }
+            } catch (e: Exception) {
+                KurozoraLogger.error("[AuthViewModel]", "2FA challenge failed", e)
+                _state.value = _state.value.copy(
+                    errorMessage = e.message ?: "Verification failed", isLoading = false
                 )
             }
         }

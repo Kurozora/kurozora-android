@@ -7,4 +7,6 @@ data class AuthState(
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val challengeToken: String? = null,
+    val twoFactorCode: String = "",
 )
