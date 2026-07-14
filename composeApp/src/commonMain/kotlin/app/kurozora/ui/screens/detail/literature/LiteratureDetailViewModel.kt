@@ -179,7 +179,7 @@ class LiteratureDetailViewModel(
                     KurozoraLogger.warning("[LiteratureDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
-                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, listOf(itemId))
 
                 if (result is Result.Success) {
                     KurozoraLogger.info("[LiteratureDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
@@ -270,7 +270,7 @@ class LiteratureDetailViewModel(
             // 3) API çağrısı
             val result = kurozoraKit
                 .user()
-                .updateMyFavorites(KKLibrary.Kind.LITERATURES, modelId)
+                .updateMyFavorites(KKLibrary.Kind.LITERATURES, listOf(modelId))
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
                 KurozoraLogger.error("[LiteratureDetailViewModel]", "Favorite update failed: $result")
@@ -309,7 +309,7 @@ class LiteratureDetailViewModel(
             // 3) API çağrısı
             val result = kurozoraKit
                 .user()
-                .updateReminderStatus(KKLibrary.Kind.LITERATURES, modelId)
+                .updateReminderStatus(KKLibrary.Kind.LITERATURES, listOf(modelId))
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
                 KurozoraLogger.error("[LiteratureDetailViewModel]", "Reminder status update failed: $result")

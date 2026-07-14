@@ -178,7 +178,7 @@ class ExploreViewModel(
                     kurozoraKit.user().addToLibrary(
                         it,
                         newStatus,
-                        itemId
+                        listOf(itemId)
                     )
                 }
 

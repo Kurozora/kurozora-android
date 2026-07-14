@@ -196,7 +196,7 @@ class ShowDetailViewModel(
                     KurozoraLogger.warning("[ShowDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
-                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, listOf(itemId))
 
                 if (result is Result.Success) {
                     KurozoraLogger.info("[ShowDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
@@ -287,7 +287,7 @@ class ShowDetailViewModel(
             // 3) API çağrısı
             val result = kurozoraKit
                 .user()
-                .updateMyFavorites(KKLibrary.Kind.SHOWS, modelId)
+                .updateMyFavorites(KKLibrary.Kind.SHOWS, listOf(modelId))
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
                 KurozoraLogger.error("[ShowDetailViewModel]", "Favorite update failed: $result")
@@ -326,7 +326,7 @@ class ShowDetailViewModel(
             // 3) API çağrısı
             val result = kurozoraKit
                 .user()
-                .updateReminderStatus(KKLibrary.Kind.SHOWS, modelId)
+                .updateReminderStatus(KKLibrary.Kind.SHOWS, listOf(modelId))
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
                 KurozoraLogger.error("[ShowDetailViewModel]", "Reminder status update failed: $result")

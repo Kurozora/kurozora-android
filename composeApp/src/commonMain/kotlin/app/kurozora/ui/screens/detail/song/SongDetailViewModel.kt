@@ -119,7 +119,7 @@ class SongDetailViewModel(
                     KurozoraLogger.warning("[SongDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
-                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, listOf(itemId))
 
                 if (result is Result.Success) {
                     KurozoraLogger.info("[SongDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")

@@ -207,7 +207,7 @@ class GameDetailViewModel(
                     KurozoraLogger.warning("[GameDetailViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
-                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, listOf(itemId))
 
                 if (result is Result.Success) {
                     KurozoraLogger.info("[GameDetailViewModel]", "Library status updated for $type ($itemId) → $newStatus")
@@ -298,7 +298,7 @@ class GameDetailViewModel(
             // 3) API çağrısı
             val result = kurozoraKit
                 .user()
-                .updateMyFavorites(KKLibrary.Kind.GAMES, modelId)
+                .updateMyFavorites(KKLibrary.Kind.GAMES, listOf(modelId))
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
                 KurozoraLogger.error("[GameDetailViewModel]", "Favorite update failed: $result")
@@ -337,7 +337,7 @@ class GameDetailViewModel(
             // 3) API çağrısı
             val result = kurozoraKit
                 .user()
-                .updateReminderStatus(KKLibrary.Kind.GAMES, modelId)
+                .updateReminderStatus(KKLibrary.Kind.GAMES, listOf(modelId))
             // 4) Başarısızsa rollback
             if (result !is Result.Success) {
                 KurozoraLogger.error("[GameDetailViewModel]", "Reminder status update failed: $result")

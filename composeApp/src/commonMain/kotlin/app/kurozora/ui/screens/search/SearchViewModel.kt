@@ -599,7 +599,7 @@ class SearchViewModel(
 
             try {
                 // 2) API çağrısı
-                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, listOf(itemId))
 
                 if (result !is Result.Success) {
                     KurozoraLogger.warning("[SearchViewModel]", "Failed to update status ($itemId → $newStatus): $result")

@@ -169,7 +169,7 @@ class LibraryViewModel(
                     KurozoraLogger.warning("[LibraryViewModel]", "Unsupported type for library update: $type")
                     return@launch
                 }
-                val result = kurozoraKit.user().addToLibrary(kind, newStatus, itemId)
+                val result = kurozoraKit.user().addToLibrary(kind, newStatus, listOf(itemId))
 
                 if (result is Result.Success) {
                     KurozoraLogger.info("[LibraryViewModel]", "Library status updated for $type ($itemId) → $newStatus")
